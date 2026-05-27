@@ -92,6 +92,43 @@ enum CertificateStatus {
   EXPIRED
 }
 
+enum PlanningStatus {
+  IDEA
+  ANALYSIS
+  STRUCTURING
+  READY
+  VALIDATION
+  ACTIVE
+  PAUSED
+}
+
+enum StrategicMaterialType {
+  PRESENTATION
+  PDF
+  IMAGE
+  VIDEO
+  SPREADSHEET
+  DOCUMENT
+  EXTERNAL_LINK
+  DESIGN_REFERENCE
+  INSTITUTIONAL
+}
+
+enum StrategicMaterialStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  OFFICIAL
+  OBSOLETE
+}
+
+enum PlanningPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
 model User {
   id                    String                @id @default(cuid())
   name                  String
@@ -893,4 +930,296 @@ model Setting {
   updatedAt   DateTime @updatedAt
 
   @@map("settings")
+}
+
+model BusinessPlanSection {
+  id          String                @id @default(cuid())
+  key         String                @unique
+  title       String
+  content     String
+  sortOrder   Int                   @default(0)
+  status      PublishStatus         @default(PUBLISHED)
+  updatedById String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  versions    BusinessPlanVersion[]
+
+  @@map("business_plan_sections")
+}
+
+model BusinessPlanVersion {
+  id          String              @id @default(cuid())
+  sectionId   String
+  version     Int
+  title       String
+  content     String
+  createdById String?
+  createdAt   DateTime            @default(now())
+  section     BusinessPlanSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([sectionId, version])
+  @@map("business_plan_versions")
+}
+
+model Vertical {
+  id             String            @id @default(cuid())
+  name           String            @unique
+  slug           String            @unique
+  description    String
+  color          String            @default("#2ce9ff")
+  icon           String?
+  status         PlanningStatus    @default(ACTIVE)
+  targetAudience String?
+  notes          String?
+  sortOrder      Int               @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  products       ProductSolution[]
+
+  @@map("verticals")
+}
+
+model ProductSolution {
+  id               String             @id @default(cuid())
+  verticalId       String
+  name             String
+  slug             String             @unique
+  shortDescription String?
+  description      String?
+  features         String[]           @default([])
+  targetAudience   String?
+  painSolved       String?
+  mainBenefit      String?
+  whiteLabelModel  String?
+  status           PlanningStatus     @default(IDEA)
+  responsible      String?
+  notes            String?
+  sortOrder        Int                @default(0)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  vertical         Vertical           @relation(fields: [verticalId], references: [id], onDelete: Cascade)
+  materials        StrategicMaterial[]
+  decisions        StrategicDecision[]
+
+  @@index([verticalId])
+  @@map("planning_products")
+}
+
+model ProductFeature {
+  id          String         @id @default(cuid())
+  productId   String
+  name        String
+  description String?
+  status      PlanningStatus @default(ACTIVE)
+  sortOrder   Int            @default(0)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([productId])
+  @@map("product_features")
+}
+
+model TargetAudience {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  audienceType String       @default("PRIMARY")
+  description String?
+  notes       String?
+  status      PublishStatus @default(PUBLISHED)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("target_audiences")
+}
+
+model CompetitiveDifferential {
+  id          String        @id @default(cuid())
+  title       String        @unique
+  description String
+  status      PublishStatus @default(PUBLISHED)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("competitive_differentials")
+}
+
+model RevenueModel {
+  id          String        @id @default(cuid())
+  name        String        @unique
+  description String?
+  status      PublishStatus @default(PUBLISHED)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  items       RevenueItem[]
+
+  @@map("revenue_models")
+}
+
+model RevenueItem {
+  id          String        @id @default(cuid())
+  modelId     String?
+  name        String
+  description String?
+  amount      Decimal       @default(0) @db.Decimal(12, 2)
+  periodicity String        @default("monthly")
+  status      PublishStatus @default(PUBLISHED)
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  model       RevenueModel? @relation(fields: [modelId], references: [id], onDelete: SetNull)
+
+  @@map("revenue_items")
+}
+
+model FinancialScenario {
+  id              String        @id @default(cuid())
+  name            String        @unique
+  providerCount   Int
+  averageTicket   Decimal       @db.Decimal(12, 2)
+  monthlyRevenue  Decimal       @default(0) @db.Decimal(12, 2)
+  annualRevenue   Decimal       @default(0) @db.Decimal(12, 2)
+  estimatedCosts  Decimal       @default(0) @db.Decimal(12, 2)
+  estimatedMargin Decimal       @default(0) @db.Decimal(12, 2)
+  scenarioType    String        @default("base")
+  notes           String?
+  status          PublishStatus @default(PUBLISHED)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("financial_scenarios")
+}
+
+model CostItem {
+  id             String        @id @default(cuid())
+  category       String
+  description    String
+  estimatedValue Decimal       @default(0) @db.Decimal(12, 2)
+  periodicity    String        @default("monthly")
+  notes          String?
+  status         PublishStatus @default(PUBLISHED)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("cost_items")
+}
+
+model InvestmentItem {
+  id             String           @id @default(cuid())
+  item           String
+  estimatedValue Decimal          @default(0) @db.Decimal(12, 2)
+  priority       PlanningPriority @default(MEDIUM)
+  status         PublishStatus    @default(DRAFT)
+  notes          String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@map("investment_items")
+}
+
+model AcquisitionChannel {
+  id          String           @id @default(cuid())
+  channel     String
+  description String?
+  priority    PlanningPriority @default(MEDIUM)
+  status      PublishStatus    @default(DRAFT)
+  notes       String?
+  responsible String?
+  materials   String[]         @default([])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@map("acquisition_channels")
+}
+
+model Department {
+  id             String     @id @default(cuid())
+  name           String     @unique
+  description    String?
+  responsibilities String?
+  status         String     @default("ACTIVE")
+  sortOrder      Int        @default(0)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  positions      Position[]
+
+  @@map("departments")
+}
+
+model Position {
+  id           String     @id @default(cuid())
+  departmentId String
+  title        String
+  description  String?
+  status       String     @default("ACTIVE")
+  sortOrder    Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@map("positions")
+}
+
+model OrgChartNode {
+  id           String         @id @default(cuid())
+  parentId     String?
+  departmentId String?
+  label        String
+  nodeType     String         @default("department")
+  description  String?
+  sortOrder    Int            @default(0)
+  status       String         @default("ACTIVE")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  parent       OrgChartNode?  @relation("PlanningOrgTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children     OrgChartNode[] @relation("PlanningOrgTree")
+
+  @@map("org_chart_nodes")
+}
+
+model StrategicMaterial {
+  id          String                  @id @default(cuid())
+  title       String
+  materialType StrategicMaterialType
+  verticalId  String?
+  productId   String?
+  fileName    String?
+  filePath    String?
+  externalUrl String?
+  description String?
+  version     String                  @default("1.0")
+  status      StrategicMaterialStatus @default(DRAFT)
+  tags        String[]                @default([])
+  isOfficial  Boolean                 @default(false)
+  createdById String?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  product     ProductSolution?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@map("materials")
+}
+
+model StrategicDecision {
+  id             String           @id @default(cuid())
+  title          String
+  relatedArea    String?
+  verticalId     String?
+  productId      String?
+  context        String?
+  decision       String
+  reason         String?
+  expectedImpact String?
+  responsible    String?
+  decisionDate   DateTime         @default(now())
+  attachments    Json?
+  tags           String[]         @default([])
+  status         PublishStatus    @default(PUBLISHED)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  product        ProductSolution? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([decisionDate])
+  @@map("strategic_decisions")
 }

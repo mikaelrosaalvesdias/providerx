@@ -14,6 +14,7 @@ services:
       retries: 5
 
   providerx_web:
+    image: providerx-planning-hub:latest
     build: .
     depends_on:
       providerx_db:

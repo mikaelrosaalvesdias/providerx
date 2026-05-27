@@ -5,7 +5,7 @@ import { dateBR } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function LogsPage() {
-  await requireAnyPermission(["admin.manage"]);
+  await requireAnyPermission(["logs.view", "admin.manage"]);
 
   const logs = await prisma.auditLog.findMany({
     orderBy: { createdAt: "desc" },
@@ -18,7 +18,7 @@ export default async function LogsPage() {
       <header>
         <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Auditoria</p>
         <h1 className="mt-2 text-3xl font-semibold text-white">Logs de acoes criticas</h1>
-        <p className="mt-2 text-sm text-slate-300">Login/logout, CRUDs, alteracoes comerciais, uploads, downloads, aprovacoes e conversoes.</p>
+        <p className="mt-2 text-sm text-slate-300">Login/logout, edicoes do plano, restauracao de versoes, uploads, downloads, materiais, decisoes e alteracoes administrativas.</p>
       </header>
 
       <section className="neon-card rounded-lg p-5">

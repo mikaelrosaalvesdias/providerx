@@ -11,11 +11,12 @@ function uploadRoot() {
 }
 
 export async function GET(_request: Request, { params }: { params: Promise<{ path: string[] }> }) {
-  await requireUser();
+  const user = await requireUser();
   const { path: parts } = await params;
   const storageKey = parts.join("/");
   const asset = await prisma.uploadedAsset.findFirst({ where: { storageKey } });
-  if (!asset) return new Response("Arquivo nao encontrado", { status: 404 });
+  const material = asset ? null : await prisma.strategicMaterial.findFirst({ where: { filePath: storageKey } });
+  if (!asset && !material) return new Response("Arquivo nao encontrado", { status: 404 });
 
   const root = path.resolve(uploadRoot());
   const fullPath = path.resolve(root, storageKey);
@@ -26,18 +27,18 @@ export async function GET(_request: Request, { params }: { params: Promise<{ pat
   const file = await readFile(fullPath);
   await prisma.auditLog.create({
     data: {
-      userId: null,
+      userId: user.id,
       action: "download",
-      entity: "uploaded_assets",
-      entityId: asset.id,
+      entity: asset ? "uploaded_assets" : "strategic_material",
+      entityId: asset?.id ?? material?.id,
       metadata: { storageKey },
     },
   });
 
   return new Response(file, {
     headers: {
-      "Content-Type": asset.mimeType,
-      "Content-Disposition": `inline; filename="${asset.originalName}"`,
+      "Content-Type": asset?.mimeType ?? "application/octet-stream",
+      "Content-Disposition": `inline; filename="${asset?.originalName ?? material?.fileName ?? "material"}"`,
     },
   });
 }

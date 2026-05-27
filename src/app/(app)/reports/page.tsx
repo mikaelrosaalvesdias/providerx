@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BarChart3, Download } from "lucide-react";
 import { requireAnyPermission } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { money } from "@/lib/format";
@@ -10,116 +11,91 @@ function toNumber(value: unknown) {
 }
 
 export default async function ReportsPage() {
-  await requireAnyPermission(["reports.view"]);
-
-  const [proposalsByStatus, proposalItems, contracts, commissions] = await Promise.all([
-    prisma.proposal.groupBy({ by: ["status"], _count: { _all: true }, _sum: { setupTotal: true, monthlyTotal: true } }),
-    prisma.proposalItem.findMany({ include: { product: true } }),
-    prisma.contract.findMany({ include: { company: true, partner: true, representative: true, salesPerson: true, items: { include: { product: true } } } }),
-    prisma.proposal.aggregate({ _sum: { commissionTotal: true, partnerShareTotal: true, setupTotal: true, monthlyTotal: true } }),
+  await requireAnyPermission(["reports.view", "admin.manage"]);
+  const [verticals, products, scenarios, costs, materials, decisions, departments] = await Promise.all([
+    prisma.vertical.findMany({ include: { products: true }, orderBy: { sortOrder: "asc" } }),
+    prisma.productSolution.findMany({ orderBy: { status: "asc" } }),
+    prisma.financialScenario.findMany({ orderBy: { monthlyRevenue: "desc" } }),
+    prisma.costItem.findMany({ orderBy: { category: "asc" } }),
+    prisma.strategicMaterial.findMany({ orderBy: { updatedAt: "desc" } }),
+    prisma.strategicDecision.findMany({ orderBy: { decisionDate: "desc" } }),
+    prisma.department.findMany({ include: { positions: true }, orderBy: { sortOrder: "asc" } }),
   ]);
 
-  const productTotals = proposalItems.reduce<Record<string, { name: string; setup: number; monthly: number; licenses: number }>>((acc, item) => {
-    const current = acc[item.productId] ?? { name: item.product.name, setup: 0, monthly: 0, licenses: 0 };
-    current.setup += toNumber(item.setupValue);
-    current.monthly += toNumber(item.monthlyValue);
-    current.licenses += item.licenseQuantity;
-    acc[item.productId] = current;
-    return acc;
-  }, {});
+  const monthlyRevenue = scenarios.reduce((max, scenario) => Math.max(max, toNumber(scenario.monthlyRevenue)), 0);
+  const monthlyCosts = costs.reduce((sum, cost) => sum + toNumber(cost.estimatedValue), 0);
+
+  const metrics = [
+    ["Verticais", verticals.length],
+    ["Produtos/solucoes", products.length],
+    ["Maior cenario mensal", money(monthlyRevenue)],
+    ["Custos planejados", money(monthlyCosts)],
+    ["Materiais", materials.length],
+    ["Decisoes", decisions.length],
+    ["Departamentos", departments.length],
+  ];
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Relatorios</p>
-          <h1 className="mt-2 text-3xl font-semibold text-white">Resultados comerciais</h1>
-          <p className="mt-2 text-sm text-slate-300">Vendas por periodo, produto, representante, parceiro, comissoes, recorrencia e conversao.</p>
+      <header className="command-surface rounded-lg border border-cyan-300/20 p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Relatorios executivos</p>
+            <h1 className="mt-2 text-3xl font-semibold text-white">Visao estrategica ProviderX</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
+              Relatorios de plano, verticais, produtos, projecoes, custos, materiais, decisoes e estrutura operacional.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link className="subtle-button" href="/reports/export?format=csv"><Download size={15} /> CSV</Link>
+            <Link className="subtle-button" href="/reports/export?format=markdown"><Download size={15} /> Markdown</Link>
+          </div>
         </div>
-        <Link className="rounded-md bg-cyan-300 px-4 py-2 text-sm font-semibold text-slate-950" href="/reports/export">
-          Exportar CSV
-        </Link>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-4">
-        <div className="neon-card rounded-lg p-5">
-          <div className="text-sm text-slate-400">Setup</div>
-          <div className="mt-2 text-2xl font-semibold text-white">{money(commissions._sum.setupTotal)}</div>
-        </div>
-        <div className="neon-card rounded-lg p-5">
-          <div className="text-sm text-slate-400">Recorrencia</div>
-          <div className="mt-2 text-2xl font-semibold text-white">{money(commissions._sum.monthlyTotal)}</div>
-        </div>
-        <div className="neon-card rounded-lg p-5">
-          <div className="text-sm text-slate-400">Comissoes</div>
-          <div className="mt-2 text-2xl font-semibold text-white">{money(commissions._sum.commissionTotal)}</div>
-        </div>
-        <div className="neon-card rounded-lg p-5">
-          <div className="text-sm text-slate-400">Repasse parceiro</div>
-          <div className="mt-2 text-2xl font-semibold text-white">{money(commissions._sum.partnerShareTotal)}</div>
-        </div>
+      <section className="grid gap-3 md:grid-cols-3 xl:grid-cols-7">
+        {metrics.map(([label, value]) => (
+          <div className="neon-card rounded-lg p-4" key={label}>
+            <p className="text-xs text-slate-500">{label}</p>
+            <p className="mt-2 font-mono text-xl font-semibold text-white">{value}</p>
+          </div>
+        ))}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid gap-4 xl:grid-cols-2">
         <div className="neon-card rounded-lg p-5">
-          <h2 className="text-lg font-semibold text-white">Propostas por status</h2>
-          <div className="mt-4 space-y-3">
-            {proposalsByStatus.map((item) => (
-              <div className="rounded-md border border-slate-700 p-3" key={item.status}>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-300">{item.status}</span>
-                  <span className="text-white">{item._count._all}</span>
-                </div>
-                <div className="mt-2 text-sm text-slate-400">
-                  Setup {money(item._sum.setupTotal)} | Mensal {money(item._sum.monthlyTotal)}
-                </div>
+          <div className="mb-4 flex items-center gap-2">
+            <BarChart3 className="text-cyan-100" size={20} />
+            <h2 className="text-xl font-semibold text-white">Produtos por status</h2>
+          </div>
+          <div className="grid gap-3">
+            {Object.entries(
+              products.reduce<Record<string, number>>((acc, product) => {
+                acc[product.status] = (acc[product.status] ?? 0) + 1;
+                return acc;
+              }, {}),
+            ).map(([status, count]) => (
+              <div className="flex items-center justify-between rounded-md border border-slate-800 bg-slate-950/30 px-4 py-3" key={status}>
+                <span className="text-sm text-slate-300">{status}</span>
+                <span className="font-mono text-cyan-100">{count}</span>
               </div>
             ))}
           </div>
         </div>
 
         <div className="neon-card rounded-lg p-5">
-          <h2 className="text-lg font-semibold text-white">Vendas por produto</h2>
+          <h2 className="text-xl font-semibold text-white">Cenarios de receita</h2>
           <div className="mt-4 space-y-3">
-            {Object.values(productTotals).map((item) => (
-              <div className="rounded-md border border-slate-700 p-3" key={item.name}>
-                <div className="font-medium text-white">{item.name}</div>
-                <div className="mt-2 text-sm text-slate-400">
-                  Licencas {item.licenses} | Setup {money(item.setup)} | Mensal {money(item.monthly)}
+            {scenarios.map((scenario) => (
+              <div className="rounded-md border border-slate-800 bg-slate-950/30 p-4" key={scenario.id}>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-medium text-white">{scenario.name}</span>
+                  <span className="font-mono text-green-100">{money(scenario.monthlyRevenue)}</span>
                 </div>
+                <p className="mt-1 text-xs text-slate-500">Anual: {money(scenario.annualRevenue)} · Margem: {money(scenario.estimatedMargin)}</p>
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="neon-card rounded-lg p-5">
-        <h2 className="text-lg font-semibold text-white">Contratos ativos</h2>
-        <div className="mt-4 table-scroll">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-700 text-slate-400">
-              <tr>
-                <th className="py-3 pr-4">Contrato</th>
-                <th className="py-3 pr-4">Empresa</th>
-                <th className="py-3 pr-4">Produto</th>
-                <th className="py-3 pr-4">Representante</th>
-                <th className="py-3 pr-4">Parceiro</th>
-                <th className="py-3 pr-4">Mensal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {contracts.map((contract) => (
-                <tr className="border-b border-slate-800" key={contract.id}>
-                  <td className="py-3 pr-4 text-cyan-100">{contract.code}</td>
-                  <td className="py-3 pr-4 text-slate-300">{contract.company.tradeName || contract.company.legalName}</td>
-                  <td className="py-3 pr-4 text-slate-300">{contract.items.map((item) => item.product.name).join(", ")}</td>
-                  <td className="py-3 pr-4 text-slate-300">{contract.representative?.name || "-"}</td>
-                  <td className="py-3 pr-4 text-slate-300">{contract.partner?.tradeName || contract.partner?.legalName || "-"}</td>
-                  <td className="py-3 pr-4 text-slate-300">{money(contract.monthlyValue)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </section>
     </div>

@@ -1,541 +1,163 @@
-# ProviderX Playbook Comercial
+# ProviderX Planning Hub
 
-[![Status](https://img.shields.io/badge/status-MVP%20em%20producao-22c55e)](https://providerx.n8nmikael.com.br)
-[![Next.js](https://img.shields.io/badge/Next.js-15-000000)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6)](https://www.typescriptlang.org)
-[![Prisma](https://img.shields.io/badge/Prisma-ORM-2d3748)](https://www.prisma.io)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169e1)](https://www.postgresql.org)
-[![Docker](https://img.shields.io/badge/Docker-Swarm%20%2B%20Traefik-2496ed)](https://docs.docker.com/engine/swarm/)
-[![License](https://img.shields.io/badge/license-Proprietary-red)](#licenca)
+Hub interno da Cariap/ProviderX para planejar, estruturar, simular e apresentar o negócio ProviderX.
 
-Plataforma web interna para gestao comercial e estrategica dos produtos white-label ProviderX/Cariap.
+O sistema organiza o plano de negócios, verticais, produtos white-label, modelo de receita, projeções financeiras, estrutura operacional, organograma, materiais estratégicos e decisões executivas.
 
-O sistema centraliza produtos, playbooks, propostas, contratos, comissoes, metas, materiais, treinamentos, relatorios, usuarios, permissoes e logs em uma central de comando comercial com identidade visual dark/neon ProviderX.
+## Escopo do MVP
 
-> Dominio de producao atual: `https://providerx.n8nmikael.com.br`
+Implementado:
 
-## Objetivo
+- Login com sessão segura.
+- Central executiva dark/neon.
+- Plano de Negócios vivo, editável por seção.
+- Histórico de versões e restauração de seções do plano.
+- Exportação do plano em Markdown e PDF simples.
+- Verticais ProviderX Home, Comércios e Serviços Locais e Varejo.
+- Produtos e soluções vinculados às verticais.
+- Modelo de receita com SaaS recorrente.
+- Projeções financeiras e simulador estratégico.
+- Estratégia comercial, públicos-alvo e diferenciais.
+- Estrutura operacional e organograma visual.
+- Materiais estratégicos com upload, link externo, status e oficialização.
+- Decisões estratégicas.
+- Relatórios executivos com exportação CSV/Markdown.
+- Admin modular.
+- Logs de auditoria.
+- Página interna de versão em `/version`.
 
-A ProviderX/Cariap estrutura produtos white-label para provedores de internet e varejo. O ProviderX Playbook Comercial foi criado para ajudar a equipe interna a:
+Fora do MVP:
 
-- Montar estrategia de venda por produto.
-- Treinar equipe comercial, marketing, financeiro e operacao.
-- Criar propostas comerciais rapidamente.
-- Simular margem, comissao, repasse e metas.
-- Controlar materiais oficiais de venda.
-- Padronizar discurso comercial.
-- Medir performance por produto, vendedor, representante e parceiro.
-- Organizar novos produtos sem fixar regra comercial no codigo.
-
-## Principios do projeto
-
-- **Interno primeiro**: o MVP nao e portal publico para representantes ou parceiros.
-- **Preparado para acesso externo**: a arquitetura ja contempla escopo futuro para representante, parceiro e cliente.
-- **Tudo modular**: precos, custos, comissoes, repasses, modelos de proposta e regras comerciais sao cadastros administrativos.
-- **Sem secrets no codigo**: senhas, tokens e conexoes ficam em variaveis de ambiente.
-- **Deploy sem conflito de infraestrutura**: usa o Traefik existente e nao publica portas 80/443 diretamente.
-- **Visual de produto oficial**: interface dark, neon, SaaS moderno, com area de produtos, indicadores e atalhos de operacao comercial.
+- Propostas comerciais.
+- Contratos.
+- CRM, funil e pipeline de vendas.
+- Base de conhecimento, trilhas, quizzes e certificados.
+- Comissão de vendedores, representantes ou parceiros.
+- Portal externo de representantes, parceiros ou clientes.
 
 ## Stack
 
-### Aplicacao
+- Next.js App Router.
+- TypeScript.
+- TailwindCSS.
+- PostgreSQL.
+- Prisma ORM.
+- Sessão segura com JWT HTTP-only.
+- Upload local em volume Docker.
+- Docker Swarm em produção.
+- Traefik como reverse proxy existente.
 
-- Next.js App Router
-- React
-- TypeScript
-- TailwindCSS
-- Server Actions
-- Cookies HTTP-only assinados com `jose`
-- Upload local por `UPLOAD_DIR`
-- Geracao de PDF com `pdfkit`
+## Rotas
 
-### Banco
+- `/login`
+- `/dashboard`
+- `/business-plan`
+- `/verticals`
+- `/products`
+- `/revenue`
+- `/financial-projections`
+- `/strategy`
+- `/org-chart`
+- `/materials`
+- `/decisions`
+- `/reports`
+- `/admin`
+- `/logs`
+- `/version`
 
-- PostgreSQL
-- Prisma ORM
-- Migrations versionadas
-- Seeds iniciais dos produtos ProviderX
+## Seeds iniciais
 
-### Infra
+O seed cria:
 
-- Docker
-- Docker Compose para desenvolvimento local
-- Docker Swarm para producao
-- Traefik como reverse proxy existente
-- HTTPS via Let's Encrypt no proxy
+- Perfis: Admin Master, Diretoria, Produto, Comercial, Marketing, Financeiro, Tecnologia e Visualizador.
+- Permissões de dashboard, planejamento, materiais, relatórios, exportações, logs e admin.
+- Plano de negócios ProviderX com seções versionáveis.
+- Verticais ProviderX Home, Comércios e Serviços Locais e Varejo.
+- Produtos Wi-Facil, AtendAI, Pixel Facil e 123 Encarte na vertical Varejo.
+- Produtos planejados para Home e Comércios.
+- Receita recorrente SaaS de R$ 1.500 por provedor.
+- Cenário inicial: 10 provedores x R$ 1.500 = R$ 15.000/mês.
+- Cenário escalado: 150 provedores x R$ 1.500 = R$ 225.000/mês.
+- Custos, investimentos, canais de aquisição, departamentos, cargos, organograma e decisões estratégicas iniciais.
 
-## Modulos
+## Variáveis de ambiente
 
-### Autenticacao e acesso
+Consulte `.env.example`.
 
-- Login e logout.
-- Sessao segura via cookie HTTP-only.
-- Usuarios criados pelo Admin.
-- Perfis e permissoes.
-- Logs de acesso e acoes criticas.
-- Bloqueio server-side de rotas administrativas.
+Obrigatórias:
 
-Perfis iniciais:
+- `POSTGRES_PASSWORD`
+- `DATABASE_URL`
+- `AUTH_SECRET`
+- `BOOTSTRAP_ADMIN_EMAIL`
+- `BOOTSTRAP_ADMIN_PASSWORD`
+- `BOOTSTRAP_ADMIN_NAME`
 
-- Admin Master
-- Diretoria
-- Gestor Comercial
-- Marketing
-- Financeiro
-- Vendedor Interno
-- Operacional
-- Visualizador
+Recomendadas:
 
-### Dashboard comercial
+- `PROVIDERX_HOST`
+- `NEXT_PUBLIC_APP_URL`
+- `UPLOAD_DIR`
 
-Tela inicial em formato de central de comando:
+Não commitar `.env`, dumps, backups, uploads reais ou secrets.
 
-- Cards neon de produtos.
-- Propostas abertas, aprovadas, perdidas e em negociacao.
-- Receita prevista.
-- Receita recorrente.
-- Setup vendido.
-- Comissao prevista.
-- Margem estimada.
-- Meta x realizado.
-- Produtos mais trabalhados.
-- Top representantes e parceiros.
-- Alertas de propostas paradas.
-- Alertas de contratos vencendo.
-- Atalhos filtrados por permissao.
-
-### Admin modular
-
-CRUD administrativo para:
-
-- Produtos
-- Modulos de produto
-- Planos
-- Tabelas de venda
-- Tabelas de custo
-- Bases de comissao
-- Regras de comissao
-- Empresas clientes
-- Empresas parceiras
-- Representantes
-- Vendedores internos
-- Usuarios
-- Perfis e permissoes
-- Organograma
-- Conteudos de playbook
-- Apresentacoes e arquivos
-- Conteudos de conhecimento
-- Trilhas
-- Quizzes e perguntas
-- Certificados
-- Metas
-- Propostas
-- Modelos de proposta
-- Contratos
-- Settings
-
-### Produtos
-
-Cada produto possui:
-
-- Logo ou placeholder substituivel por upload.
-- Cor principal.
-- Categoria.
-- Descricao curta e completa.
-- Publico-alvo.
-- Dores.
-- Beneficios.
-- Argumentos de venda.
-- Objecoes e respostas.
-- Scripts de abordagem, WhatsApp e ligacao.
-- Checklist de implantacao.
-- Checklist de fechamento.
-- Modulos, planos, precos, custos e regras vinculadas.
-
-Produtos seedados:
-
-- Vigia Amigo: ciano/azul, monitoramento inteligente, CFTV, alarme e interfone virtual.
-- Wi-Facil: verde, hotspot white-label e captura de leads.
-- AtendAI: roxo, atendimento WhatsApp Oficial/API Meta com IA de apoio.
-- Pixel Facil: amarelo, TV corporativa, midia indoor e filas.
-- 123 Encarte: rosa/magenta, cartazes e encartes integrados ao ERP.
-
-### Propostas comerciais
-
-O modulo de proposta funciona como um construtor de paginas:
-
-- Criar proposta do zero.
-- Selecionar cliente, vendedor, representante e parceiro.
-- Adicionar produtos, modulos, setup, mensalidade, licencas e descontos.
-- Adicionar paginas livres.
-- Adicionar imagem A4 como pagina.
-- Reordenar paginas.
-- Duplicar paginas.
-- Remover paginas.
-- Salvar como rascunho.
-- Versionar alteracoes.
-- Duplicar proposta.
-- Gerar PDF comercial.
-- Registrar motivo de perda.
-- Converter proposta aprovada em contrato.
-
-Status:
-
-- Rascunho
-- Em revisao
-- Enviada
-- Em negociacao
-- Aprovada
-- Perdida
-- Cancelada
-- Convertida em contrato
-
-### Comissoes e simulador
-
-O motor de regras permite bases de calculo modulares:
-
-- Setup
-- Mensalidade
-- Faturamento bruto
-- Faturamento liquido
-- Margem
-- Regra personalizada documentada
-
-O simulador calcula:
-
-- Receita bruta.
-- Receita liquida.
-- Custo.
-- Margem.
-- Comissao do vendedor.
-- Comissao do representante.
-- Repasse do parceiro.
-- Faturamento ProviderX.
-- Percentual de meta atingida.
-- Valor faltante para meta.
-- Projecao mensal e anual.
-- Ponto de equilibrio.
-- Cenario conservador, base e agressivo.
-
-### Playbook comercial
-
-Area navegavel por produto com:
-
-- Como vender.
-- Para quem vender.
-- Dores do cliente.
-- Perguntas de diagnostico.
-- Roteiro de apresentacao.
-- Script de WhatsApp.
-- Script de ligacao.
-- Follow-up.
-- Objecoes e respostas.
-- Provas sociais.
-- Comparativos.
-- Checklist de proposta.
-- Checklist de fechamento.
-- Estrategias por produto, segmento, etapa e tipo de cliente.
-
-### Conhecimento, provas e certificados
-
-- Conteudos de texto, video, PDF, link, apresentacao e checklist.
-- Trilhas por produto.
-- Itens obrigatorios.
-- Provas de conhecimento.
-- Nota minima.
-- Historico de tentativas.
-- Certificado interno com nome do usuario, trilha, produto, data e nota.
-- Modelo de certificado configuravel em settings.
-
-### Apresentacoes e materiais
-
-- Upload de PDF.
-- Upload de PPT/PPTX.
-- Upload de imagens.
-- Upload de videos.
-- Organizacao por produto.
-- Tags e categorias.
-- Controle de versao.
-- Status publicado ou rascunho.
-- Download e visualizacao quando possivel.
-- Historico de alteracoes via logs.
-
-### Relatorios
-
-Relatorios com filtros:
-
-- Vendas por periodo.
-- Vendas por produto.
-- Vendas por vendedor.
-- Vendas por representante.
-- Vendas por parceiro.
-- Comissoes por periodo.
-- Receita recorrente.
-- Receita de setup.
-- Propostas por status.
-- Taxa de conversao.
-- Produtos mais trabalhados.
-- Produtos mais vendidos.
-- Meta x realizado.
-- Projecao de faturamento.
-- Margem por produto.
-- Margem por proposta.
-- Conteudos concluidos.
-- Pontuacao em provas.
-
-Exportacao atual:
-
-- CSV
-
-### Logs e auditoria
-
-Registra:
-
-- Login.
-- Logout.
-- Criacao, edicao e exclusao de registros.
-- Alteracao de preco.
-- Alteracao de custo.
-- Alteracao de comissao.
-- Alteracao de proposta.
-- Alteracao de contrato.
-- Upload de arquivo.
-- Download de arquivo.
-- Geracao de PDF.
-- Conversao de proposta em contrato.
-- Alteracao de permissao.
-
-Campos:
-
-- Usuario.
-- Acao.
-- Modulo.
-- ID do registro.
-- Dados antigos quando aplicavel.
-- Dados novos quando aplicavel.
-- Data/hora.
-- IP quando disponivel.
-
-## Modelo de dados
-
-O Prisma schema inclui, entre outros:
-
-- `users`
-- `roles`
-- `permissions`
-- `user_roles`
-- `products`
-- `product_modules`
-- `product_plans`
-- `pricing_rules`
-- `cost_rules`
-- `commission_rules`
-- `commission_bases`
-- `commission_simulations`
-- `companies`
-- `partner_companies`
-- `representatives`
-- `sales_people`
-- `proposals`
-- `proposal_items`
-- `proposal_pages`
-- `proposal_templates`
-- `proposal_versions`
-- `contracts`
-- `contract_items`
-- `goals`
-- `playbook_sections`
-- `playbook_contents`
-- `knowledge_contents`
-- `knowledge_tracks`
-- `knowledge_track_items`
-- `quizzes`
-- `quiz_questions`
-- `quiz_answers`
-- `quiz_attempts`
-- `certificates`
-- `uploaded_assets`
-- `org_units`
-- `audit_logs`
-- `settings`
-
-## Estrutura do repositorio
-
-```text
-.
-├── prisma/
-│   ├── migrations/
-│   ├── schema.prisma
-│   └── seed.ts
-├── src/
-│   ├── app/
-│   ├── components/
-│   └── lib/
-├── docs/
-│   ├── ARQUITETURA.md
-│   ├── ESCOPO.md
-│   └── OPERACAO.md
-├── AUDITORIA_INICIAL.md
-├── CHECKLIST_PORTAS_DOMINIOS_PROXY.md
-├── ENV_VARS.md
-├── README_DEPLOY.md
-├── docker-compose.yml
-├── docker-stack.yml
-└── Dockerfile
-```
-
-## Desenvolvimento local
-
-1. Configure variaveis:
-
-```bash
-cp .env.example .env
-```
-
-Edite `.env` com valores reais. Gere `AUTH_SECRET` com pelo menos 32 caracteres.
-
-2. Instale dependencias:
+## Desenvolvimento
 
 ```bash
 npm install
-```
-
-3. Suba o PostgreSQL:
-
-```bash
-docker compose up -d providerx_db
-```
-
-4. Rode migrations e seed:
-
-```bash
-npm run prisma:migrate
-npm run prisma:seed
-```
-
-5. Rode a aplicacao:
-
-```bash
+npx prisma generate
 npm run dev
 ```
 
-Opcionalmente, rode app e banco via Compose:
+Validações:
 
 ```bash
-docker compose up --build
-```
-
-## Variaveis de ambiente
-
-Consulte [ENV_VARS.md](./ENV_VARS.md).
-
-Minimo:
-
-```env
-DATABASE_URL="postgresql://providerx:senha@localhost:5432/providerx?schema=public"
-POSTGRES_PASSWORD="senha-forte"
-AUTH_SECRET="minimo-32-caracteres"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-UPLOAD_DIR="./uploads"
-BOOTSTRAP_ADMIN_NAME="Admin ProviderX"
-BOOTSTRAP_ADMIN_EMAIL="admin@providerx.local"
-BOOTSTRAP_ADMIN_PASSWORD="senha-forte"
-NORMAL_USER_EMAIL="usuario@providerx.local"
-NORMAL_USER_PASSWORD="senha-forte"
-```
-
-Nunca commitar `.env`.
-
-## Admin inicial
-
-O seed cria o usuario Admin Master a partir de:
-
-- `BOOTSTRAP_ADMIN_NAME`
-- `BOOTSTRAP_ADMIN_EMAIL`
-- `BOOTSTRAP_ADMIN_PASSWORD`
-
-O seed falha de proposito quando `BOOTSTRAP_ADMIN_PASSWORD` nao esta definido.
-
-## Validacao
-
-```bash
+npx prisma validate
 npm run lint
 npm run typecheck
-npx prisma validate
 npm run build
-npm audit --omit=dev
 ```
 
-Validacao feita no servidor antes da publicacao:
+Seed:
 
-- `npm run lint`
-- `npm run typecheck`
-- `npm run build`
-- `docker build -t providerx-playbook:latest .`
-- `docker service update --force providerx_providerx_web`
-- Teste HTTP/HTTPS no dominio de producao
-- Teste Playwright com usuario Visualizador e Admin Master
+```bash
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+O seed exige `BOOTSTRAP_ADMIN_PASSWORD`.
 
 ## Deploy
 
-Consulte [README_DEPLOY.md](./README_DEPLOY.md).
+Todo deploy em produção exige:
+
+1. Atualizar versão.
+2. Atualizar `CHANGELOG.md`.
+3. Rodar validações.
+4. Commitar.
+5. Fazer push no GitHub.
+6. Só depois publicar no servidor.
+
+Repositório oficial:
+
+```text
+https://github.com/mikaelrosaalvesdias/providerx
+```
+
+Detalhes operacionais em `README_DEPLOY.md`.
+
+## Auditoria
+
+A auditoria técnica mais recente está em:
+
+- `AUDITORIA_PLANNING_HUB_20260527.md`
+- `CHECKLIST_PORTAS_DOMINIOS_PROXY.md`
 
 Resumo:
 
-```bash
-docker build -t providerx-playbook:latest .
-
-set -a
-. ./.env
-set +a
-
-docker stack deploy -c docker-stack.yml providerx --resolve-image never
-docker service update --force providerx_providerx_web
-```
-
-A stack nao publica portas no host. O roteamento e feito pelo Traefik existente na rede `n8nmikaelnet`.
-
-## Auditoria inicial
-
-A auditoria read-only do servidor esta documentada em [AUDITORIA_INICIAL.md](./AUDITORIA_INICIAL.md).
-
-Checklist operacional:
-
-- [CHECKLIST_PORTAS_DOMINIOS_PROXY.md](./CHECKLIST_PORTAS_DOMINIOS_PROXY.md)
-- [README_DEPLOY.md](./README_DEPLOY.md)
-- [ENV_VARS.md](./ENV_VARS.md)
-- [DESENVOLVIMENTO.md](./DESENVOLVIMENTO.md)
-- [CHANGELOG.md](./CHANGELOG.md)
-
-## Padrao de versionamento e deploy
-
-O app mostra a versao atual no login, na sidebar autenticada e na rota interna `/version`.
-
-Todo deploy em producao deve seguir esta ordem:
-
-1. Atualizar versao e changelog.
-2. Rodar validacoes.
-3. Commitar e fazer push no GitHub.
-4. Fazer build Docker.
-5. Atualizar a stack em producao.
-6. Validar o dominio.
-
-Deploy sem push previo no GitHub nao e permitido neste projeto.
-
-## Roadmap
-
-- Portal externo para representantes.
-- Portal externo para parceiros.
-- Visualizacao de proposta pelo cliente.
-- Aceite digital.
-- Exportacao XLSX.
-- Exportacao PDF avancada de relatorios.
-- Storage S3 compativel.
-- Biblioteca oficial de logos e materiais por produto.
-- Melhorias de design com componentes mais ricos por modulo.
-
-## Licenca
-
-Projeto proprietario ProviderX/Cariap.
-
-Todos os direitos reservados. O uso, copia, distribuicao, sublicenciamento ou publicacao fora do contexto autorizado pela ProviderX/Cariap depende de permissao formal.
+- Produção usa Docker Swarm.
+- Reverse proxy atual é Traefik.
+- Rede externa Traefik: `n8nmikaelnet`.
+- Não usar portas 80/443 diretamente.
+- Não expor porta pública nova.
+- `providerx.cariap.com.br` ainda precisa estar resolvendo DNS para este servidor antes de trocar o host final.

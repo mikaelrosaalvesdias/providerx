@@ -12,7 +12,10 @@
 : Secret de assinatura da sessao. Minimo de 32 caracteres. Gere com `openssl rand -base64 48`.
 
 `NEXT_PUBLIC_APP_URL`
-: URL publica da aplicacao. Producao: `https://providerx.n8nmikael.com.br`.
+: URL publica da aplicacao. Final: `https://providerx.cariap.com.br`. Enquanto DNS final nao estiver ativo, usar `https://providerx.n8nmikael.com.br`.
+
+`PROVIDERX_HOST`
+: Host usado nas labels Traefik. Final: `providerx.cariap.com.br`. Enquanto DNS final nao estiver ativo, usar `providerx.n8nmikael.com.br`.
 
 `UPLOAD_DIR`
 : Diretorio de upload. Producao no container: `/app/uploads`.

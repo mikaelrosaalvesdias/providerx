@@ -1,54 +1,68 @@
-# Checklist de portas, dominios e reverse proxy
+# Checklist de portas, domínios e reverse proxy
 
-## Estado observado na auditoria
+## Estado observado
 
-- `/opt/providerx` estava vazio antes da implementacao.
 - Reverse proxy ativo: Traefik em Docker Swarm.
-- Servico: `traefik_traefik`.
-- Imagem ativa: `traefik:v2.11`.
-- Portas publicas do proxy: `80/tcp` e `443/tcp`, ambas ja em uso pelo Docker/Traefik.
-- Network Traefik: `n8nmikaelnet`.
+- Serviço: `traefik_traefik`.
+- Rede externa do proxy: `n8nmikaelnet`.
+- Portas públicas `80/tcp` e `443/tcp` já usadas pelo Traefik.
 - `nginx.service`: inativo.
-- `caddy.service`: nao encontrado.
-- `apache2.service`: nao encontrado.
-- Nao havia rota Traefik nem referencia em arquivos para `providerx.cariap.com.br`.
-- DNS de `providerx.cariap.com.br` nao resolvia no momento da auditoria.
+- `caddy.service`: inativo/não usado.
+- `apache2.service`: inativo/não usado.
+- Stack ProviderX atual: `providerx`.
+- Serviços ProviderX: `providerx_providerx_web` e `providerx_providerx_db`.
+- Banco ProviderX fica na rede interna da stack.
 
-## Checklist antes de subir
+## Domínios
 
-- [x] DNS `providerx.n8nmikael.com.br` resolve para `213.199.32.244` em verificacao read-only de 2026-05-25.
-- [x] TLS de `providerx.n8nmikael.com.br` emitido corretamente pelo Traefik/Let's Encrypt.
-- [x] `.env` criado a partir de `.env.example`, sem sobrescrever arquivo existente.
-- [x] `POSTGRES_PASSWORD` definido com secret forte.
-- [x] `AUTH_SECRET` com pelo menos 32 caracteres.
-- [x] `BOOTSTRAP_ADMIN_PASSWORD` definido.
-- [x] Backup de `/opt/providerx` criado em `/opt/backups/providerx/20260525_202809`.
-- [ ] Se houver banco existente, dump PostgreSQL criado.
-- [x] Imagem `providerx-playbook:latest` buildada localmente.
-- [x] `docker-stack.yml` revisado e sem `ports:`.
-- [x] Servico web anexado a `n8nmikaelnet`.
-- [x] Label `traefik.http.routers.providerx.rule=Host(\`providerx.n8nmikael.com.br\`)` confirmada.
-- [x] Label HTTP `providerx-http` confirmada para redirecionar `http://` para `https://`.
-- [x] Label `traefik.http.services.providerx.loadbalancer.server.port=3000` confirmada.
-- [x] Certresolver `letsencrypt` disponivel no Traefik ativo.
-- [x] Migrations aplicadas com `npx prisma migrate deploy`.
-- [x] Seed executado com `BOOTSTRAP_ADMIN_PASSWORD` real.
-- [x] Login disponivel em `https://providerx.n8nmikael.com.br/login`.
+- Atual funcional: `providerx.n8nmikael.com.br`.
+- Final solicitado: `providerx.cariap.com.br`.
+- Auditoria de 2026-05-27: `providerx.cariap.com.br` ainda não resolvia DNS.
 
-## Portas que nao devem ser usadas diretamente
+## Regras
 
-- `80/tcp`
-- `443/tcp`
-- `5432/tcp` no host
+- [x] Não usar `80/tcp` diretamente pela aplicação.
+- [x] Não usar `443/tcp` diretamente pela aplicação.
+- [x] Não expor PostgreSQL no host.
+- [x] Não publicar porta pública nova para o ProviderX.
+- [x] Usar Traefik pela rede `n8nmikaelnet`.
+- [x] Manter serviço web ouvindo apenas na porta interna `3000`.
+- [x] Fazer backup antes de alteração em produção.
+- [x] Fazer commit e push no GitHub antes de deploy.
+- [ ] Trocar `PROVIDERX_HOST` para `providerx.cariap.com.br` somente após DNS resolver para o servidor.
 
-O Postgres ProviderX deve permanecer somente na rede interna da stack.
+## Labels Traefik esperadas
 
-## Rota esperada
+O `docker-stack.yml` usa:
 
-- Dominio: `providerx.n8nmikael.com.br`
-- Entrypoint: `websecure`
-- HTTP: redireciona permanentemente para HTTPS
-- TLS: habilitado
-- Resolver: `letsencrypt`
-- Porta interna da app: `3000`
-- Sem porta publica nova no host
+- `traefik.enable=true`
+- `traefik.docker.network=n8nmikaelnet`
+- `traefik.http.routers.providerx.entrypoints=websecure`
+- `traefik.http.routers.providerx.rule=Host(${PROVIDERX_HOST})`
+- `traefik.http.routers.providerx.tls=true`
+- `traefik.http.routers.providerx.tls.certresolver=letsencrypt`
+- `traefik.http.services.providerx.loadbalancer.server.port=3000`
+
+## Variáveis de roteamento
+
+Enquanto DNS final não estiver pronto:
+
+```env
+PROVIDERX_HOST=providerx.n8nmikael.com.br
+NEXT_PUBLIC_APP_URL=https://providerx.n8nmikael.com.br
+```
+
+Quando DNS final estiver pronto:
+
+```env
+PROVIDERX_HOST=providerx.cariap.com.br
+NEXT_PUBLIC_APP_URL=https://providerx.cariap.com.br
+```
+
+Depois da troca:
+
+```bash
+docker stack deploy -c docker-stack.yml providerx --resolve-image never
+docker service update --force providerx_providerx_web
+curl -I https://providerx.cariap.com.br/login
+```

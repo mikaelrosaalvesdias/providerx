@@ -1,10 +1,11 @@
-export const appVersion = "0.1.1";
+export const appVersion = "0.2.0";
 export const appVersionLabel = `v${appVersion}`;
 export const appReleaseDate = "2026-05-27";
 
 export const appReleaseNotes = [
-  "Versao visivel no login, sidebar e pagina interna de versao.",
-  "Changelog padrao adicionado ao projeto.",
-  "Regra formal: todo deploy deve ter commit e push no GitHub antes da publicacao.",
-  "Documentacao de desenvolvimento criada com fluxo obrigatorio de versao, validacao, Git e deploy.",
+  "Escopo convertido para ProviderX Planning Hub.",
+  "Menu, dashboard e Admin removem propostas, contratos, CRM, conhecimento, certificados e comissoes.",
+  "Plano de negocios vivo com versoes, restauracao e exportacao Markdown/PDF.",
+  "Novos modulos de verticais, produtos, receita, projecoes, estrategia, organograma, materiais, decisoes e relatorios executivos.",
+  "Seeds iniciais alinhados ao plano ProviderX.",
 ];

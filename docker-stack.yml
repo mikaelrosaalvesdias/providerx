@@ -22,11 +22,11 @@ services:
           - node.role == manager
 
   providerx_web:
-    image: providerx-playbook:latest
+    image: providerx-planning-hub:latest
     environment:
       DATABASE_URL: postgresql://providerx:${POSTGRES_PASSWORD}@providerx_db:5432/providerx?schema=public
       AUTH_SECRET: ${AUTH_SECRET}
-      NEXT_PUBLIC_APP_URL: https://providerx.n8nmikael.com.br
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-https://providerx.n8nmikael.com.br}
       UPLOAD_DIR: /app/uploads
       BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME}
       BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL}
@@ -45,11 +45,11 @@ services:
         - traefik.enable=true
         - traefik.docker.network=n8nmikaelnet
         - traefik.http.routers.providerx.entrypoints=websecure
-        - traefik.http.routers.providerx.rule=Host(`providerx.n8nmikael.com.br`)
+        - traefik.http.routers.providerx.rule=Host(`${PROVIDERX_HOST:-providerx.n8nmikael.com.br}`)
         - traefik.http.routers.providerx.tls=true
         - traefik.http.routers.providerx.tls.certresolver=letsencrypt
         - traefik.http.routers.providerx-http.entrypoints=web
-        - traefik.http.routers.providerx-http.rule=Host(`providerx.n8nmikael.com.br`)
+        - traefik.http.routers.providerx-http.rule=Host(`${PROVIDERX_HOST:-providerx.n8nmikael.com.br}`)
         - traefik.http.routers.providerx-http.middlewares=providerx-https-redirect
         - traefik.http.routers.providerx-http.service=providerx
         - traefik.http.middlewares.providerx-https-redirect.redirectscheme.scheme=https

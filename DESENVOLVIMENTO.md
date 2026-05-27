@@ -1,39 +1,57 @@
-# Instrucoes de desenvolvimento
+# Instruções de desenvolvimento
 
-Este documento define o padrao obrigatorio para evoluir, versionar e publicar o ProviderX Playbook Comercial.
+Este documento define o padrão obrigatório para evoluir, versionar e publicar o ProviderX Planning Hub.
 
 ## Regra principal
 
-Todo deploy em producao deve ter o codigo correspondente publicado no GitHub antes da atualizacao do servidor.
+Todo deploy em produção deve ter o código correspondente publicado no GitHub antes da atualização do servidor.
 
-Repositorio oficial:
+Repositório oficial:
 
 ```text
 https://github.com/mikaelrosaalvesdias/providerx
 ```
 
-Nao fazer deploy de codigo que exista somente no servidor.
+Não fazer deploy de código que exista somente no servidor.
 
-## Fluxo obrigatorio
+## Escopo atual
 
-1. Desenvolver a alteracao localmente.
-2. Atualizar a versao no `package.json` quando houver mudanca de comportamento, visual, banco, deploy ou documentacao operacional.
-3. Atualizar `CHANGELOG.md`.
-4. Atualizar documentacao afetada.
-5. Rodar validacoes.
-6. Conferir que `.env`, secrets, builds e artefatos locais nao entram no Git.
-7. Commitar.
-8. Fazer push no GitHub.
-9. Somente depois do push, fazer build Docker e deploy.
-10. Validar a aplicacao em producao.
+O sistema é um hub interno de planejamento de produtos e negócio.
+
+Não criar módulos de:
+
+- propostas;
+- contratos;
+- CRM;
+- funil comercial;
+- conhecimento;
+- quizzes;
+- certificados;
+- comissões;
+- portal externo.
+
+## Fluxo obrigatório
+
+1. Desenvolver a alteração.
+2. Atualizar versão em `package.json` quando mudar comportamento, visual, banco, deploy ou documentação operacional.
+3. Atualizar `package-lock.json`.
+4. Atualizar `src/lib/app-version.ts`.
+5. Atualizar `CHANGELOG.md`.
+6. Atualizar documentação afetada.
+7. Rodar validações.
+8. Conferir que secrets e artefatos locais não entram no Git.
+9. Commitar.
+10. Fazer push no GitHub.
+11. Só depois fazer build Docker e deploy.
+12. Validar produção.
 
 ## Versionamento
 
-O app exibe a versao atual em:
+O app exibe a versão em:
 
-- Tela de login.
-- Sidebar autenticada.
-- Pagina interna `/version`.
+- `/login`
+- sidebar autenticada
+- `/version`
 
 Arquivos que devem ficar alinhados:
 
@@ -42,17 +60,15 @@ Arquivos que devem ficar alinhados:
 - `src/lib/app-version.ts`
 - `CHANGELOG.md`
 
-Padrao:
+Critério:
 
-- `PATCH`: ajustes visuais, documentacao, correcoes pequenas e melhorias operacionais.
-- `MINOR`: novo modulo, novo fluxo ou funcionalidade relevante.
-- `MAJOR`: mudanca incompatvel, reestruturacao grande ou quebra de contrato.
+- `PATCH`: correções pequenas, ajustes visuais e documentação.
+- `MINOR`: novo módulo, novo fluxo ou mudança relevante.
+- `MAJOR`: reestruturação incompatível.
 
 ## Logs
 
-Existem dois tipos de log:
-
-### Log de versao
+### Changelog
 
 Arquivo:
 
@@ -60,13 +76,9 @@ Arquivo:
 CHANGELOG.md
 ```
 
-Uso:
+Registrar o que mudou por versão. Não registrar senhas, tokens, dados sensíveis ou informações privadas.
 
-- Registrar o que mudou em cada versao.
-- Separar itens por `Adicionado`, `Alterado`, `Corrigido`, `Removido`, `Seguranca` ou `Padronizado`.
-- Nao registrar senhas, tokens, dados sensiveis ou informacoes privadas de cliente.
-
-### Log de auditoria do app
+### Auditoria do app
 
 Tabela:
 
@@ -74,30 +86,29 @@ Tabela:
 audit_logs
 ```
 
-Uso:
+Registrar:
 
-- Registrar login/logout.
-- Registrar CRUDs.
-- Registrar alteracao de preco, custo, comissao, proposta, contrato e permissao.
-- Registrar upload/download.
-- Registrar geracao de PDF.
-- Registrar conversao de proposta em contrato.
+- login/logout;
+- edição do plano;
+- restauração de versão;
+- criação/edição de verticais e produtos;
+- alteração de projeções;
+- alteração de custos;
+- upload/download de material;
+- criação de decisão;
+- alteração de organograma;
+- alteração de permissão.
 
-## Validacoes antes de commit
+## Validações
 
 ```bash
+npx prisma validate
 npm run lint
 npm run typecheck
 npm run build
 ```
 
-Quando schema Prisma mudar:
-
-```bash
-npx prisma validate
-```
-
-Quando dependencias mudarem:
+Quando dependências mudarem:
 
 ```bash
 npm audit --omit=dev
@@ -110,7 +121,7 @@ git status -sb
 git diff --stat
 ```
 
-Confirmar que nao existem:
+Não enviar:
 
 - `.env`
 - `.env.*` com secrets
@@ -118,61 +129,20 @@ Confirmar que nao existem:
 - `.next/`
 - `.playwright-cli/`
 - `uploads/` com arquivos reais
-- Dumps de banco
-- Backups compactados
-- Tokens ou senhas em README/docs
+- dumps de banco
+- backups
+- tokens ou senhas
 
-## Commit
-
-Use mensagem curta e objetiva:
+## Commit e push
 
 ```bash
 git add -A
-git commit -m "Add app version and development workflow"
+git commit -m "Pivot to ProviderX Planning Hub"
 git push origin main
 ```
 
-Se houver branch de trabalho, abrir PR antes de merge.
+## Deploy
 
-## Deploy depois do push
+O deploy só acontece depois do push.
 
-No servidor:
-
-```bash
-cd /opt/providerx
-docker build -t providerx-playbook:latest .
-
-set -a
-. ./.env
-set +a
-
-docker stack deploy -c docker-stack.yml providerx --resolve-image never
-docker service update --force providerx_providerx_web
-```
-
-## Validacao pos-deploy
-
-```bash
-docker service ls | grep providerx
-docker service ps providerx_providerx_web
-curl -I https://providerx.n8nmikael.com.br/login
-```
-
-Validar no navegador:
-
-- Login mostra versao correta.
-- Sidebar mostra versao correta.
-- `/version` abre.
-- Usuario Visualizador nao ve Admin.
-- `/admin` redireciona usuario sem permissao.
-- Admin Master acessa Admin.
-- Logs de auditoria continuam registrando acoes criticas.
-
-## Proibido
-
-- Fazer deploy sem push no GitHub.
-- Subir `.env`.
-- Hardcodar secrets.
-- Hardcodar preco, custo, comissao, repasse ou regra comercial fora de seed inicial.
-- Alterar proxy, porta ou stack global sem auditoria e backup.
-- Expor porta publica nova sem Traefik/reverse proxy existente.
+Consulte `README_DEPLOY.md`.

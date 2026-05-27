@@ -1,96 +1,262 @@
 "use client";
 
 import { useActionState } from "react";
-import { ArrowRight, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
 import { loginAction } from "@/app/login/actions";
 import { appVersionLabel } from "@/lib/app-version";
 
-const products = [
-  ["Vigia Amigo", "#2ce9ff"],
-  ["Wi-Facil", "#63ff9a"],
-  ["AtendAI", "#8a5cff"],
-  ["Pixel Facil", "#ffd166"],
-  ["123 Encarte", "#ff3df2"],
+const VERTICALS = [
+  { name: "ProviderX Home", color: "#2ce9ff" },
+  { name: "Comércios e Serviços Locais", color: "#4fffa6" },
+  { name: "ProviderX Varejo", color: "#ff5bb8" },
+];
+
+const STATS = [
+  { value: "3", label: "Verticais" },
+  { value: "R$ 225k", label: "Cenario mensal" },
+  { value: "100%", label: "White label" },
 ];
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(loginAction, undefined);
 
   return (
-    <main className="login-stage min-h-screen px-4 py-6 sm:px-6 lg:px-10">
-      <section className="mx-auto grid min-h-[calc(100vh-48px)] w-full max-w-6xl gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-        <div className="login-brand-panel">
-          <div className="brand-lockup">
-            <div className="brand-mark large">PX</div>
-            <div>
-              <div className="brand-wordmark text-2xl">ProviderX</div>
-              <div className="text-sm text-slate-400">Playbook Comercial {appVersionLabel}</div>
+    <main
+      style={{
+        minHeight: "100vh",
+        display: "grid",
+        gridTemplateColumns: "1.1fr 0.9fr",
+        background: "var(--bg-base)",
+      }}
+    >
+      {/* Brand panel */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          padding: "52px 60px",
+          background:
+            "linear-gradient(135deg, rgba(44,233,255,0.08), transparent 34%), linear-gradient(225deg, rgba(255,61,242,0.07), transparent 36%), var(--bg-canvas)",
+          borderRight: "1px solid var(--line)",
+        }}
+      >
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              display: "grid",
+              placeItems: "center",
+              background: "linear-gradient(145deg, rgba(44,233,255,0.18), rgba(138,92,255,0.1))",
+              border: "1px solid rgba(44,233,255,0.3)",
+              color: "#c7fbff",
+              fontFamily: "var(--font-mono)",
+              fontSize: 14,
+              fontWeight: 700,
+            }}
+          >
+            PX
+          </div>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>ProviderX</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "var(--font-mono)", letterSpacing: "0.08em" }}>
+              PLANNING HUB · {appVersionLabel}
             </div>
           </div>
+        </div>
 
-          <div className="mt-12 max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-md border border-cyan-300/20 bg-cyan-300/5 px-3 py-2 text-xs uppercase tracking-[0.18em] text-cyan-100">
-              <Sparkles size={15} />
-              Operacao comercial interna
-            </div>
-            <h1 className="mt-5 text-4xl font-semibold leading-tight text-white sm:text-5xl">
-              Central de produtos, vendas e estrategia ProviderX.
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-300">
-              Organize playbooks, propostas, comissoes, materiais e treinamento em uma base unica para vender produtos white-label com consistencia.
-            </p>
+        {/* Hero headline */}
+        <div>
+          <h1
+            className="h-display"
+            style={{ fontSize: 56, color: "var(--text-primary)", maxWidth: 540, marginBottom: 24 }}
+          >
+            Escale serviços. Multiplique receitas.
+          </h1>
+          <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.7, maxWidth: 440, marginBottom: 36 }}>
+            Central interna para planejar verticais, produtos white-label, modelo de receita, estrutura operacional, materiais e decisoes estrategicas.
+          </p>
+
+          {/* Mini stats */}
+          <div style={{ display: "flex", gap: 32, marginBottom: 40 }}>
+            {STATS.map(({ value, label }) => (
+              <div key={label}>
+                <div
+                  style={{
+                    fontSize: 28,
+                    fontWeight: 700,
+                    fontFamily: "var(--font-mono)",
+                    color: "var(--neon-cyan)",
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  {value}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{label}</div>
+              </div>
+            ))}
           </div>
 
-          <div className="mt-10 grid max-w-2xl gap-3 sm:grid-cols-2">
-            <div className="login-metric">
-              <ShieldCheck size={18} />
-              <span>Precos, custos e comissoes editaveis no Admin</span>
-            </div>
-            <div className="login-metric">
-              <LockKeyhole size={18} />
-              <span>Acesso interno com sessao segura</span>
-            </div>
+          {/* Feature pills */}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 32 }}>
+            {[
+              { Icon: ShieldCheck, label: "Plano de negocios vivo" },
+              { Icon: LockKeyhole, label: "Acesso interno seguro" },
+            ].map(({ Icon, label }) => (
+              <div
+                key={label}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  border: "1px solid var(--line-strong)",
+                  background: "rgba(255,255,255,0.03)",
+                  fontSize: 13,
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <Icon size={14} strokeWidth={1.6} style={{ color: "var(--neon-cyan)" }} />
+                {label}
+              </div>
+            ))}
           </div>
 
-          <div className="mt-10 flex flex-wrap gap-2">
-            {products.map(([name, color]) => (
-              <span className="product-chip" key={name} style={{ borderColor: `${color}66`, color }}>
+          {/* Product chips */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {VERTICALS.map(({ name, color }) => (
+              <span
+                key={name}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 99,
+                  border: `1px solid ${color}55`,
+                  color,
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}
+              >
                 {name}
               </span>
             ))}
           </div>
         </div>
 
-        <section className="login-card">
-          <div className="mb-8">
-            <div className="text-sm font-medium text-cyan-100">Acesso restrito</div>
-            <h2 className="mt-2 text-2xl font-semibold text-white">Entrar no ProviderX</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-400">Use seu usuario interno para acessar a central comercial.</p>
+        {/* Footer */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--text-muted)" }}>
+          <span className="pulse-dot" />
+          <span style={{ fontFamily: "var(--font-mono)" }}>providerx.cariap.com.br</span>
+        </div>
+      </div>
+
+      {/* Login card */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 40,
+          background: "var(--bg-canvas)",
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 400,
+            background: "var(--bg-elev-1)",
+            border: "1px solid var(--line-strong)",
+            borderRadius: 16,
+            padding: 32,
+            boxShadow: "var(--sh-pop)",
+          }}
+        >
+          <div style={{ marginBottom: 28 }}>
+            <div
+              className="h-eyebrow"
+              style={{ color: "var(--neon-cyan)", marginBottom: 8 }}
+            >
+              Acesso restrito
+            </div>
+            <h2 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 700, color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
+              Entrar no Planning Hub
+            </h2>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+              Use seu usuario interno para acessar o hub estrategico ProviderX.
+            </p>
           </div>
 
-          <form action={formAction} className="space-y-4">
-            <label className="block text-sm text-slate-200">
+          <form action={formAction} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <label style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13, color: "var(--text-secondary)" }}>
               E-mail
-              <input className="mt-2" name="email" type="email" autoComplete="email" required />
+              <input name="email" type="email" autoComplete="email" required placeholder="seu@email.com" />
             </label>
-            <label className="block text-sm text-slate-200">
+            <label style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 13, color: "var(--text-secondary)" }}>
               Senha
-              <input className="mt-2" name="password" type="password" autoComplete="current-password" required />
+              <input name="password" type="password" autoComplete="current-password" required placeholder="••••••••" />
             </label>
 
-            {state?.error ? <div className="form-alert">{state.error}</div> : null}
+            {state?.error ? (
+              <div
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  background: "rgba(255,94,108,0.1)",
+                  border: "1px solid rgba(255,94,108,0.3)",
+                  fontSize: 13,
+                  color: "var(--danger)",
+                }}
+              >
+                {state.error}
+              </div>
+            ) : null}
 
-            <button className="primary-action" type="submit" disabled={pending}>
-              {pending ? "Entrando..." : "Entrar"}
-              <ArrowRight size={18} />
+            <button
+              type="submit"
+              disabled={pending}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                padding: "12px 20px",
+                borderRadius: 9,
+                border: "1px solid rgba(44,233,255,0.4)",
+                background: "linear-gradient(135deg, rgba(44,233,255,0.22), rgba(79,255,166,0.1))",
+                color: "var(--text-primary)",
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: pending ? "not-allowed" : "pointer",
+                opacity: pending ? 0.7 : 1,
+                marginTop: 4,
+              }}
+            >
+              <span className={pending ? "shimmer-text" : ""}>{pending ? "Entrando..." : "Entrar"}</span>
+              <ArrowRight size={16} strokeWidth={1.6} />
             </button>
           </form>
-          <div className="mt-6 flex items-center justify-between border-t border-slate-800 pt-4 text-xs text-slate-500">
-            <span>ProviderX Playbook Comercial</span>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginTop: 24,
+              paddingTop: 16,
+              borderTop: "1px solid var(--line)",
+              fontSize: 11,
+              color: "var(--text-muted)",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            <span>ProviderX Planning Hub</span>
             <span>{appVersionLabel}</span>
           </div>
-        </section>
-      </section>
+        </div>
+      </div>
     </main>
   );
 }

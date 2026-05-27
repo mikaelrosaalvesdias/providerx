@@ -11,9 +11,9 @@ export default async function AdminHomePage() {
     <div className="space-y-6">
       <header>
         <p className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Admin modular</p>
-        <h1 className="mt-2 text-3xl font-semibold text-white">Cadastros e regras comerciais</h1>
+        <h1 className="mt-2 text-3xl font-semibold text-white">Cadastros do Planning Hub</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
-          Produtos, planos, precos, custos, comissoes, pessoas, conhecimento, permissoes, metas e configuracoes.
+          Plano de negocios, verticais, solucoes, receita, cenarios financeiros, estrutura operacional, materiais e decisoes estrategicas.
         </p>
       </header>
 

@@ -25,7 +25,7 @@ export default async function VersionPage() {
           <GitBranch size={16} />
           Versao do app
         </div>
-        <h1 className="mt-4 text-3xl font-semibold text-white">ProviderX Playbook Comercial {appVersionLabel}</h1>
+        <h1 className="mt-4 text-3xl font-semibold text-white">ProviderX Planning Hub {appVersionLabel}</h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300">
           Registro interno de versao, changelog e padrao obrigatorio para publicacao em producao.
         </p>

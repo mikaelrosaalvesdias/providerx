@@ -15,13 +15,13 @@ npm run typecheck
 npm run build
 ```
 
-5. Document changes when they affect setup, deploy, environment variables or commercial rules.
+5. Document changes when they affect setup, deploy, environment variables or planning rules.
 
 ## Code guidelines
 
 - Prefer existing patterns in `src/app`, `src/components` and `src/lib`.
-- Keep commercial rules configurable in Admin.
-- Do not hardcode prices, costs, commissions, partner rules or sales rules outside seeds.
+- Keep planning entities configurable in Admin.
+- Do not add CRM, proposals, contracts, commissions, knowledge, quizzes or certificates to the MVP scope.
 - Keep route protection server-side.
 - Keep UI links filtered by permission.
 - Register critical actions in audit logs.
