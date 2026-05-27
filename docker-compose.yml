@@ -23,6 +23,7 @@ services:
       DATABASE_URL: postgresql://providerx:${POSTGRES_PASSWORD:-providerx_dev_password}@providerx_db:5432/providerx?schema=public
       AUTH_SECRET: ${AUTH_SECRET}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      HOSTNAME: 0.0.0.0
       UPLOAD_DIR: /app/uploads
       BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-Admin ProviderX}
       BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@providerx.local}

@@ -20,6 +20,9 @@
 `UPLOAD_DIR`
 : Diretorio de upload. Producao no container: `/app/uploads`.
 
+`HOSTNAME`
+: Deve ser `0.0.0.0` no container para o Next escutar em todas as redes Docker e o Traefik conseguir acessar a porta interna `3000`.
+
 `BOOTSTRAP_ADMIN_EMAIL`
 : E-mail do admin inicial criado pelo seed.
 

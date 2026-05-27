@@ -8,6 +8,7 @@ Todas as mudanças relevantes do ProviderX Planning Hub devem ser registradas ne
 
 - Adicionado ícone ProviderX em `public/icon.svg`.
 - Metadados do app agora apontam para o ícone e evitam 404 de favicon no login.
+- Fixado `HOSTNAME=0.0.0.0` na stack para o Next escutar nas redes Docker usadas pelo Traefik.
 
 ## [0.2.0] - 2026-05-27
 

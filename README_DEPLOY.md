@@ -51,6 +51,7 @@ DATABASE_URL="postgresql://providerx:...@providerx_db:5432/providerx?schema=publ
 AUTH_SECRET="..."
 PROVIDERX_HOST="providerx.cariap.com.br"
 NEXT_PUBLIC_APP_URL="https://providerx.cariap.com.br"
+HOSTNAME="0.0.0.0"
 UPLOAD_DIR="/app/uploads"
 BOOTSTRAP_ADMIN_NAME="Admin ProviderX"
 BOOTSTRAP_ADMIN_EMAIL="admin@providerx.local"
@@ -113,6 +114,8 @@ set +a
 docker stack deploy -c docker-stack.yml providerx --resolve-image never
 docker service update --force providerx_providerx_web
 ```
+
+O `HOSTNAME=0.0.0.0` é obrigatório para o Next escutar nas duas redes Docker da task. Sem isso, o serviço pode ficar disponível na rede interna do banco, mas retornar 502 no Traefik.
 
 ## Verificação
 
