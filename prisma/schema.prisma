@@ -1,0 +1,896 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  INVITED
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ProposalStatus {
+  DRAFT
+  REVIEW
+  SENT
+  NEGOTIATION
+  APPROVED
+  LOST
+  CANCELED
+  CONVERTED
+}
+
+enum ContractStatus {
+  DRAFT
+  IMPLEMENTATION
+  ACTIVE
+  SUSPENDED
+  PAUSED
+  ENDED
+  CANCELED
+  RENEWAL_PENDING
+}
+
+enum AssetType {
+  LOGO
+  PRESENTATION
+  PDF
+  VIDEO
+  IMAGE
+  CONTRACT
+  ATTACHMENT
+  LINK
+}
+
+enum KnowledgeContentType {
+  VIDEO
+  PDF
+  LINK
+  TEXT
+  PRESENTATION
+  CHECKLIST
+}
+
+enum ProposalPageType {
+  COVER
+  INSTITUTIONAL
+  PRODUCT
+  PRICING
+  COMMERCIAL_TERMS
+  FREE_TEXT
+  A4_IMAGE
+  ACCEPTANCE
+}
+
+enum CommissionBaseType {
+  SETUP
+  MONTHLY
+  GROSS_REVENUE
+  NET_REVENUE
+  MARGIN
+  CUSTOM
+}
+
+enum CertificateStatus {
+  ISSUED
+  REVOKED
+  EXPIRED
+}
+
+model User {
+  id                    String                @id @default(cuid())
+  name                  String
+  email                 String                @unique
+  passwordHash          String
+  status                UserStatus            @default(ACTIVE)
+  lastLoginAt           DateTime?
+  createdAt             DateTime              @default(now())
+  updatedAt             DateTime              @updatedAt
+  roles                 UserRole[]
+  salesPerson           SalesPerson?
+  uploadedAssets        UploadedAsset[]
+  auditLogs             AuditLog[]
+  quizAttempts          QuizAttempt[]
+  certificates          Certificate[]
+  passwordResetTokens   PasswordResetToken[]
+  commissionSimulations CommissionSimulation[]
+  proposalsCreated      Proposal[]            @relation("ProposalCreatedBy")
+  proposalsUpdated      Proposal[]            @relation("ProposalUpdatedBy")
+  contractsCreated      Contract[]            @relation("ContractCreatedBy")
+  managedOrgUnits       OrgUnit[]             @relation("OrgUnitManager")
+
+  @@map("users")
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  label       String
+  description String?
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId String
+  roleId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model Product {
+  id              String              @id @default(cuid())
+  name            String              @unique
+  slug            String              @unique
+  logoAssetId     String?
+  primaryColor    String              @default("#2ce9ff")
+  category        String?
+  shortDescription String?
+  description     String?
+  targetAudience  String?
+  pains           String[]            @default([])
+  benefits        String[]            @default([])
+  salesArguments  String[]            @default([])
+  approachScripts String[]            @default([])
+  whatsappScripts String[]            @default([])
+  callScripts     String[]            @default([])
+  implementationChecklist String[]    @default([])
+  closingChecklist String[]           @default([])
+  objections      Json?
+  status          ProductStatus       @default(ACTIVE)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  logoAsset       UploadedAsset?      @relation("ProductLogo", fields: [logoAssetId], references: [id])
+  plans           ProductPlan[]
+  modules         ProductModule[]
+  pricingRules    PricingRule[]
+  costRules       CostRule[]
+  commissionRules CommissionRule[]
+  representatives RepresentativeProduct[]
+  proposalItems   ProposalItem[]
+  proposalPages   ProposalPage[]
+  proposalTemplates ProposalTemplate[]
+  contractItems   ContractItem[]
+  goals           Goal[]
+  playbookSections PlaybookSection[]
+  playbookContents PlaybookContent[]
+  knowledgeTracks KnowledgeTrack[]
+  knowledgeContents KnowledgeContent[]
+  quizzes         Quiz[]
+  uploadedAssets  UploadedAsset[]     @relation("ProductAssets")
+  simulations     CommissionSimulation[]
+  certificates    Certificate[]
+
+  @@map("products")
+}
+
+model ProductModule {
+  id           String   @id @default(cuid())
+  productId    String
+  name         String
+  description  String?
+  moduleType   String   @default("feature")
+  setupPrice   Decimal  @default(0) @db.Decimal(12, 2)
+  monthlyPrice Decimal  @default(0) @db.Decimal(12, 2)
+  active       Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, name])
+  @@map("product_modules")
+}
+
+model ProductPlan {
+  id           String        @id @default(cuid())
+  productId    String
+  name         String
+  description  String?
+  setupPrice   Decimal       @default(0) @db.Decimal(12, 2)
+  monthlyPrice Decimal       @default(0) @db.Decimal(12, 2)
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  product      Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  pricingRules PricingRule[]
+  costRules    CostRule[]
+  commissionRules CommissionRule[]
+  proposalItems ProposalItem[]
+
+  @@unique([productId, name])
+  @@map("product_plans")
+}
+
+model PricingRule {
+  id          String       @id @default(cuid())
+  productId   String
+  planId      String?
+  category    String
+  minQuantity Int
+  maxQuantity Int?
+  unitPrice   Decimal      @db.Decimal(12, 2)
+  setupPrice  Decimal?     @db.Decimal(12, 2)
+  active      Boolean      @default(true)
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  plan        ProductPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@index([productId, category, minQuantity])
+  @@map("pricing_rules")
+}
+
+model CostRule {
+  id          String       @id @default(cuid())
+  productId   String
+  planId      String?
+  category    String
+  minQuantity Int
+  maxQuantity Int?
+  unitCost    Decimal      @db.Decimal(12, 2)
+  setupCost   Decimal?     @db.Decimal(12, 2)
+  active      Boolean      @default(true)
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  plan        ProductPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@index([productId, category, minQuantity])
+  @@map("cost_rules")
+}
+
+model CommissionRule {
+  id                            String   @id @default(cuid())
+  productId                     String?
+  planId                        String?
+  baseId                        String?
+  appliesTo                     String   @default("seller")
+  providerName                  String?
+  name                          String
+  salesPersonCommissionPercent  Decimal  @default(0) @db.Decimal(5, 2)
+  representativeCommissionPercent Decimal @default(0) @db.Decimal(5, 2)
+  partnerRevenuePercent         Decimal  @default(0) @db.Decimal(5, 2)
+  commissionBase                CommissionBaseType @default(NET_REVENUE)
+  triggerEvent                  String   @default("contract_active")
+  minQuantity                   Int?
+  maxQuantity                   Int?
+  minMarginPercent              Decimal? @db.Decimal(5, 2)
+  goalMultiplierPercent         Decimal? @db.Decimal(5, 2)
+  customFormula                 String?
+  active                        Boolean  @default(true)
+  notes                         String?
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+  product                       Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  plan                          ProductPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  base                          CommissionBase? @relation(fields: [baseId], references: [id], onDelete: SetNull)
+
+  @@map("commission_rules")
+}
+
+model CommissionBase {
+  id          String             @id @default(cuid())
+  key         String             @unique
+  label       String
+  baseType    CommissionBaseType
+  description String?
+  formula     String?
+  active      Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  rules       CommissionRule[]
+
+  @@map("commission_bases")
+}
+
+model Company {
+  id          String      @id @default(cuid())
+  legalName   String
+  tradeName   String?
+  cnpj        String?
+  contactName String?
+  email       String?
+  phone       String?
+  city        String?
+  state       String?
+  segment     String?
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  partner     PartnerCompany?
+  proposals   Proposal[]
+  contracts   Contract[]
+
+  @@index([legalName])
+  @@map("companies")
+}
+
+model PartnerCompany {
+  id                    String     @id @default(cuid())
+  companyId             String?    @unique
+  legalName             String
+  tradeName             String?
+  cnpj                  String?
+  responsibleName       String?
+  phone                 String?
+  email                 String?
+  partnershipType       String
+  revenueSharePercent   Decimal    @default(0) @db.Decimal(5, 2)
+  billingBase           CommissionBaseType @default(GROSS_REVENUE)
+  customRules           Json?
+  products              String[]   @default([])
+  status                String     @default("ACTIVE")
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  company               Company?   @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  proposals             Proposal[]
+  contracts             Contract[]
+
+  @@map("partner_companies")
+}
+
+model Representative {
+  id                       String                  @id @default(cuid())
+  name                     String
+  document                 String?
+  company                  String?
+  region                   String?
+  contact                  String?
+  phone                    String?
+  email                    String?
+  defaultCommissionPercent Decimal                 @default(0) @db.Decimal(5, 2)
+  goalAmount               Decimal                 @default(0) @db.Decimal(12, 2)
+  status                   String                  @default("ACTIVE")
+  history                  Json?
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+  products                 RepresentativeProduct[]
+  proposals                Proposal[]
+  contracts                Contract[]
+  goals                    Goal[]
+
+  @@map("representatives")
+}
+
+model RepresentativeProduct {
+  representativeId String
+  productId        String
+  representative   Representative @relation(fields: [representativeId], references: [id], onDelete: Cascade)
+  product          Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([representativeId, productId])
+  @@map("representative_products")
+}
+
+model SalesPerson {
+  id                       String     @id @default(cuid())
+  userId                   String?    @unique
+  name                     String
+  email                    String?
+  phone                    String?
+  department               String?
+  defaultCommissionPercent Decimal    @default(0) @db.Decimal(5, 2)
+  goalAmount               Decimal    @default(0) @db.Decimal(12, 2)
+  status                   String     @default("ACTIVE")
+  createdAt                DateTime   @default(now())
+  updatedAt                DateTime   @updatedAt
+  user                     User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  proposals                Proposal[]
+  contracts                Contract[]
+  goals                    Goal[]
+
+  @@map("sales_people")
+}
+
+model Proposal {
+  id                String            @id @default(cuid())
+  code              String            @unique
+  title             String
+  companyId         String
+  partnerId         String?
+  representativeId  String?
+  salesPersonId     String?
+  validityDate      DateTime?
+  status            ProposalStatus    @default(DRAFT)
+  responsibleName   String?
+  responsibleEmail  String?
+  responsiblePhone  String?
+  cnpj              String?
+  commercialCondition String?
+  setupTotal        Decimal           @default(0) @db.Decimal(12, 2)
+  monthlyTotal      Decimal           @default(0) @db.Decimal(12, 2)
+  discountAmount    Decimal           @default(0) @db.Decimal(12, 2)
+  commissionTotal   Decimal           @default(0) @db.Decimal(12, 2)
+  partnerShareTotal Decimal           @default(0) @db.Decimal(12, 2)
+  estimatedMargin   Decimal           @default(0) @db.Decimal(12, 2)
+  notes             String?
+  lossReason        String?
+  createdById       String?
+  updatedById       String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  company           Company           @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  partner           PartnerCompany?   @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  representative    Representative?   @relation(fields: [representativeId], references: [id], onDelete: SetNull)
+  salesPerson       SalesPerson?      @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
+  createdBy         User?             @relation("ProposalCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updatedBy         User?             @relation("ProposalUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+  items             ProposalItem[]
+  pages             ProposalPage[]
+  versions          ProposalVersion[]
+  contract          Contract?
+  uploadedAssets    UploadedAsset[]   @relation("ProposalAssets")
+
+  @@index([status])
+  @@index([companyId])
+  @@map("proposals")
+}
+
+model ProposalPage {
+  id              String           @id @default(cuid())
+  proposalId      String
+  pageType        ProposalPageType @default(FREE_TEXT)
+  title           String
+  content         String?
+  imageAssetId    String?
+  productId       String?
+  sortOrder       Int              @default(0)
+  settings        Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  proposal        Proposal         @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  imageAsset      UploadedAsset?   @relation("ProposalPageImage", fields: [imageAssetId], references: [id], onDelete: SetNull)
+  product         Product?         @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([proposalId, sortOrder])
+  @@map("proposal_pages")
+}
+
+model ProposalTemplate {
+  id          String        @id @default(cuid())
+  productId   String?
+  name        String
+  description String?
+  coverAssetId String?
+  pages       Json          @default("[]")
+  footer      String?
+  status      PublishStatus @default(DRAFT)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  product     Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  coverAsset  UploadedAsset? @relation("ProposalTemplateCover", fields: [coverAssetId], references: [id], onDelete: SetNull)
+
+  @@map("proposal_templates")
+}
+
+model ProposalItem {
+  id                          String       @id @default(cuid())
+  proposalId                  String
+  productId                   String
+  planId                      String?
+  licenseQuantity             Int          @default(0)
+  setupValue                  Decimal      @default(0) @db.Decimal(12, 2)
+  monthlyValue                Decimal      @default(0) @db.Decimal(12, 2)
+  discountValue               Decimal      @default(0) @db.Decimal(12, 2)
+  internalCost                Decimal      @default(0) @db.Decimal(12, 2)
+  salesPersonCommissionValue  Decimal      @default(0) @db.Decimal(12, 2)
+  representativeCommissionValue Decimal    @default(0) @db.Decimal(12, 2)
+  partnerShareValue           Decimal      @default(0) @db.Decimal(12, 2)
+  notes                       String?
+  proposal                    Proposal     @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  product                     Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+  plan                        ProductPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@map("proposal_items")
+}
+
+model ProposalVersion {
+  id         String   @id @default(cuid())
+  proposalId String
+  version    Int
+  snapshot   Json
+  createdById String?
+  createdAt  DateTime @default(now())
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@unique([proposalId, version])
+  @@map("proposal_versions")
+}
+
+model Contract {
+  id               String          @id @default(cuid())
+  code             String          @unique
+  proposalId       String?         @unique
+  companyId        String
+  partnerId        String?
+  representativeId String?
+  salesPersonId    String?
+  startDate        DateTime
+  endDate          DateTime?
+  setupValue       Decimal         @default(0) @db.Decimal(12, 2)
+  monthlyValue     Decimal         @default(0) @db.Decimal(12, 2)
+  licenses         Int             @default(0)
+  commissionValue  Decimal         @default(0) @db.Decimal(12, 2)
+  status           ContractStatus  @default(ACTIVE)
+  financialStatus  String          @default("pending")
+  operationalStatus String         @default("pending")
+  fileAssetId      String?
+  notes            String?
+  createdById      String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  proposal         Proposal?       @relation(fields: [proposalId], references: [id], onDelete: SetNull)
+  company          Company         @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  partner          PartnerCompany? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  representative   Representative? @relation(fields: [representativeId], references: [id], onDelete: SetNull)
+  salesPerson      SalesPerson?    @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
+  fileAsset        UploadedAsset?  @relation("ContractFile", fields: [fileAssetId], references: [id], onDelete: SetNull)
+  createdBy        User?           @relation("ContractCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  items            ContractItem[]
+  uploadedAssets   UploadedAsset[] @relation("ContractAssets")
+
+  @@index([status])
+  @@map("contracts")
+}
+
+model ContractItem {
+  id              String   @id @default(cuid())
+  contractId      String
+  productId       String
+  licenseQuantity Int      @default(0)
+  setupValue      Decimal  @default(0) @db.Decimal(12, 2)
+  monthlyValue    Decimal  @default(0) @db.Decimal(12, 2)
+  commissionValue Decimal  @default(0) @db.Decimal(12, 2)
+  contract        Contract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  product         Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("contract_items")
+}
+
+model Goal {
+  id               String          @id @default(cuid())
+  name             String
+  salesPersonId    String?
+  representativeId String?
+  productId        String?
+  periodStart      DateTime
+  periodEnd        DateTime
+  targetAmount     Decimal         @db.Decimal(12, 2)
+  achievedAmount   Decimal         @default(0) @db.Decimal(12, 2)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  salesPerson      SalesPerson?    @relation(fields: [salesPersonId], references: [id], onDelete: SetNull)
+  representative   Representative? @relation(fields: [representativeId], references: [id], onDelete: SetNull)
+  product          Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@map("goals")
+}
+
+model CommissionSimulation {
+  id                              String   @id @default(cuid())
+  userId                          String?
+  productId                       String?
+  licenseQuantity                 Int      @default(0)
+  setupValue                      Decimal  @default(0) @db.Decimal(12, 2)
+  monthlyValue                    Decimal  @default(0) @db.Decimal(12, 2)
+  discountValue                   Decimal  @default(0) @db.Decimal(12, 2)
+  internalCost                    Decimal  @default(0) @db.Decimal(12, 2)
+  salesPersonCommissionPercent    Decimal  @default(0) @db.Decimal(5, 2)
+  representativeCommissionPercent Decimal  @default(0) @db.Decimal(5, 2)
+  partnerRevenuePercent           Decimal  @default(0) @db.Decimal(5, 2)
+  monthlyGoal                     Decimal  @default(0) @db.Decimal(12, 2)
+  currentSalesAmount              Decimal  @default(0) @db.Decimal(12, 2)
+  result                          Json
+  createdAt                       DateTime @default(now())
+  user                            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  product                         Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@map("commission_simulations")
+}
+
+model PlaybookSection {
+  id        String        @id @default(cuid())
+  productId String
+  kind      String
+  title     String
+  content   String
+  sortOrder Int           @default(0)
+  status    PublishStatus @default(PUBLISHED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  contents  PlaybookContent[]
+
+  @@index([productId, kind])
+  @@map("playbook_sections")
+}
+
+model PlaybookContent {
+  id          String        @id @default(cuid())
+  productId   String
+  sectionId   String?
+  audience    String?
+  salesStage  String?
+  customerType String?
+  title       String
+  content     String
+  sortOrder   Int           @default(0)
+  status      PublishStatus @default(PUBLISHED)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  section     PlaybookSection? @relation(fields: [sectionId], references: [id], onDelete: SetNull)
+
+  @@map("playbook_contents")
+}
+
+model KnowledgeTrack {
+  id          String             @id @default(cuid())
+  productId   String?
+  title       String
+  description String?
+  sortOrder   Int                @default(0)
+  status      PublishStatus      @default(PUBLISHED)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  product     Product?           @relation(fields: [productId], references: [id], onDelete: SetNull)
+  contents    KnowledgeContent[]
+  items       KnowledgeTrackItem[]
+  quizzes     Quiz[]
+  certificates Certificate[]
+
+  @@map("knowledge_tracks")
+}
+
+model KnowledgeTrackItem {
+  id        String           @id @default(cuid())
+  trackId   String
+  contentId String?
+  quizId    String?
+  required  Boolean          @default(false)
+  sortOrder Int              @default(0)
+  track     KnowledgeTrack   @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  content   KnowledgeContent? @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  quiz      Quiz?            @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@map("knowledge_track_items")
+}
+
+model KnowledgeContent {
+  id              String               @id @default(cuid())
+  productId       String?
+  trackId         String?
+  title           String
+  contentType     KnowledgeContentType
+  description     String?
+  url             String?
+  assetId         String?
+  durationMinutes Int?
+  status          PublishStatus        @default(PUBLISHED)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  product         Product?             @relation(fields: [productId], references: [id], onDelete: SetNull)
+  track           KnowledgeTrack?      @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  trackItems      KnowledgeTrackItem[]
+  asset           UploadedAsset?       @relation("KnowledgeAsset", fields: [assetId], references: [id], onDelete: SetNull)
+
+  @@map("knowledge_contents")
+}
+
+model Quiz {
+  id           String         @id @default(cuid())
+  productId    String?
+  trackId      String?
+  title        String
+  description  String?
+  passingScore Int            @default(70)
+  status       PublishStatus  @default(PUBLISHED)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  product      Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+  track        KnowledgeTrack? @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  questions    QuizQuestion[]
+  trackItems   KnowledgeTrackItem[]
+  attempts     QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id            String @id @default(cuid())
+  quizId        String
+  prompt        String
+  options       Json
+  correctAnswer String
+  explanation   String?
+  sortOrder     Int    @default(0)
+  quiz          Quiz   @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers       QuizAnswer[]
+
+  @@map("quiz_questions")
+}
+
+model QuizAnswer {
+  id         String       @id @default(cuid())
+  questionId String
+  label      String
+  isCorrect  Boolean      @default(false)
+  sortOrder  Int          @default(0)
+  question   QuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("quiz_answers")
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  quizId    String
+  userId    String
+  score     Int
+  maxScore  Int
+  passed    Boolean
+  answers   Json
+  createdAt DateTime @default(now())
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  certificates Certificate[]
+
+  @@map("quiz_attempts")
+}
+
+model Certificate {
+  id            String            @id @default(cuid())
+  userId        String
+  trackId       String?
+  productId     String?
+  quizAttemptId String?
+  title         String
+  certificateText String
+  score         Int?
+  status        CertificateStatus @default(ISSUED)
+  appearance    Json?
+  issuedAt      DateTime          @default(now())
+  createdAt     DateTime          @default(now())
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  track         KnowledgeTrack?   @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  product       Product?          @relation(fields: [productId], references: [id], onDelete: SetNull)
+  quizAttempt   QuizAttempt?      @relation(fields: [quizAttemptId], references: [id], onDelete: SetNull)
+
+  @@map("certificates")
+}
+
+model UploadedAsset {
+  id                 String             @id @default(cuid())
+  productId          String?
+  proposalId         String?
+  contractId         String?
+  uploadedById       String?
+  fileName           String
+  originalName       String
+  mimeType           String
+  sizeBytes          Int
+  storageKey         String
+  assetType          AssetType          @default(ATTACHMENT)
+  tags               String[]           @default([])
+  status             PublishStatus      @default(PUBLISHED)
+  version            Int                @default(1)
+  notes              String?
+  createdAt          DateTime           @default(now())
+  product            Product?           @relation("ProductAssets", fields: [productId], references: [id], onDelete: SetNull)
+  proposal           Proposal?          @relation("ProposalAssets", fields: [proposalId], references: [id], onDelete: SetNull)
+  contract           Contract?          @relation("ContractAssets", fields: [contractId], references: [id], onDelete: SetNull)
+  uploadedBy         User?              @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  logoForProducts    Product[]          @relation("ProductLogo")
+  fileForContracts   Contract[]         @relation("ContractFile")
+  knowledgeContents  KnowledgeContent[] @relation("KnowledgeAsset")
+  proposalPageImages ProposalPage[]      @relation("ProposalPageImage")
+  proposalTemplateCovers ProposalTemplate[] @relation("ProposalTemplateCover")
+
+  @@index([assetType])
+  @@map("uploaded_assets")
+}
+
+model OrgUnit {
+  id            String    @id @default(cuid())
+  name          String
+  position      String?
+  company       String?
+  department    String?
+  parentId      String?
+  managerUserId String?
+  email         String?
+  phone         String?
+  status        String    @default("ACTIVE")
+  description   String?
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  parent        OrgUnit?  @relation("OrgTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children      OrgUnit[] @relation("OrgTree")
+  manager       User?     @relation("OrgUnitManager", fields: [managerUserId], references: [id], onDelete: SetNull)
+
+  @@map("org_units")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Setting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  type        String   @default("json")
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@map("settings")
+}

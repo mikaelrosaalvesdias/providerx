@@ -1,0 +1,36 @@
+services:
+  providerx_db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: providerx
+      POSTGRES_USER: providerx
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-providerx_dev_password}
+    volumes:
+      - providerx_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U providerx -d providerx"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  providerx_web:
+    build: .
+    depends_on:
+      providerx_db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://providerx:${POSTGRES_PASSWORD:-providerx_dev_password}@providerx_db:5432/providerx?schema=public
+      AUTH_SECRET: ${AUTH_SECRET}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      UPLOAD_DIR: /app/uploads
+      BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-Admin ProviderX}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@providerx.local}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD}
+    volumes:
+      - providerx_uploads:/app/uploads
+    ports:
+      - "127.0.0.1:3035:3000"
+
+volumes:
+  providerx_postgres_data:
+  providerx_uploads:

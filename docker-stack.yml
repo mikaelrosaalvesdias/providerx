@@ -1,0 +1,68 @@
+version: "3.8"
+
+services:
+  providerx_db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: providerx
+      POSTGRES_USER: providerx
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - providerx_postgres_data:/var/lib/postgresql/data
+    networks:
+      - providerx_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U providerx -d providerx"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  providerx_web:
+    image: providerx-playbook:latest
+    environment:
+      DATABASE_URL: postgresql://providerx:${POSTGRES_PASSWORD}@providerx_db:5432/providerx?schema=public
+      AUTH_SECRET: ${AUTH_SECRET}
+      NEXT_PUBLIC_APP_URL: https://providerx.n8nmikael.com.br
+      UPLOAD_DIR: /app/uploads
+      BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD}
+    volumes:
+      - providerx_uploads:/app/uploads
+    networks:
+      - providerx_internal
+      - n8nmikaelnet
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - traefik.enable=true
+        - traefik.docker.network=n8nmikaelnet
+        - traefik.http.routers.providerx.entrypoints=websecure
+        - traefik.http.routers.providerx.rule=Host(`providerx.n8nmikael.com.br`)
+        - traefik.http.routers.providerx.tls=true
+        - traefik.http.routers.providerx.tls.certresolver=letsencrypt
+        - traefik.http.routers.providerx-http.entrypoints=web
+        - traefik.http.routers.providerx-http.rule=Host(`providerx.n8nmikael.com.br`)
+        - traefik.http.routers.providerx-http.middlewares=providerx-https-redirect
+        - traefik.http.routers.providerx-http.service=providerx
+        - traefik.http.middlewares.providerx-https-redirect.redirectscheme.scheme=https
+        - traefik.http.middlewares.providerx-https-redirect.redirectscheme.permanent=true
+        - traefik.http.services.providerx.loadbalancer.server.port=3000
+
+volumes:
+  providerx_postgres_data:
+  providerx_uploads:
+
+networks:
+  providerx_internal:
+    driver: overlay
+    attachable: true
+  n8nmikaelnet:
+    external: true
