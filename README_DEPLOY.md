@@ -67,7 +67,7 @@ NEXT_PUBLIC_APP_URL="https://providerx.n8nmikael.com.br"
 ## Backup antes de produção
 
 ```bash
-BACKUP_DIR="/opt/backups/providerx/$(date +%Y%m%d_%H%M%S)_before_0.2.0"
+BACKUP_DIR="/opt/backups/providerx/$(date +%Y%m%d_%H%M%S)_before_deploy"
 mkdir -p "$BACKUP_DIR"
 cp -a /opt/providerx "$BACKUP_DIR/providerx-files"
 

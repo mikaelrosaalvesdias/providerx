@@ -22,6 +22,10 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   title: "ProviderX Planning Hub",
   description: "Hub interno ProviderX/Cariap para planejamento de produtos, negocio, receita, materiais e estrategia.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

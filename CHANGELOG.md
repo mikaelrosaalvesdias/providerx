@@ -2,6 +2,13 @@
 
 Todas as mudanças relevantes do ProviderX Planning Hub devem ser registradas neste arquivo.
 
+## [0.2.1] - 2026-05-27
+
+### Corrigido
+
+- Adicionado ícone ProviderX em `public/icon.svg`.
+- Metadados do app agora apontam para o ícone e evitam 404 de favicon no login.
+
 ## [0.2.0] - 2026-05-27
 
 ### Alterado
