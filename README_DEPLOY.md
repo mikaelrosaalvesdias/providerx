@@ -2,6 +2,28 @@
 
 Este procedimento respeita a auditoria inicial: nao usa portas 80/443 diretamente, nao publica porta nova no host e usa Traefik via Docker Swarm.
 
+## Regra obrigatoria de Git
+
+Todo deploy em producao deve ter commit e push no GitHub antes da atualizacao do servidor.
+
+Repositorio oficial:
+
+`https://github.com/mikaelrosaalvesdias/providerx`
+
+Antes de publicar:
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+git status -sb
+git add -A
+git commit -m "Descricao objetiva da alteracao"
+git push origin main
+```
+
+Nao fazer deploy de codigo que exista somente no servidor. Consulte `DESENVOLVIMENTO.md`.
+
 ## Pre-requisitos confirmados
 
 - Docker Swarm ativo.

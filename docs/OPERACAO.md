@@ -24,8 +24,9 @@ Uso atual:
 ## Rotina de atualizacao
 
 1. Revisar mudancas.
-2. Validar `.env.example` e documentacao.
-3. Rodar verificacoes:
+2. Atualizar versao em `package.json`, `package-lock.json`, `src/lib/app-version.ts` e `CHANGELOG.md` quando aplicavel.
+3. Validar `.env.example` e documentacao.
+4. Rodar verificacoes:
 
 ```bash
 npm run lint
@@ -33,7 +34,16 @@ npm run typecheck
 npm run build
 ```
 
-4. Fazer backup:
+5. Fazer commit e push no GitHub antes de qualquer deploy:
+
+```bash
+git status -sb
+git add -A
+git commit -m "Descricao objetiva da alteracao"
+git push origin main
+```
+
+6. Fazer backup:
 
 ```bash
 BACKUP_DIR="/opt/backups/providerx/$(date +%Y%m%d_%H%M%S)"
@@ -42,13 +52,13 @@ tar -czf "$BACKUP_DIR/providerx-files-before-deploy.tgz" -C /opt providerx
 docker exec -t $(docker ps --filter name=providerx_providerx_db -q | head -n1) pg_dump -U providerx providerx > "$BACKUP_DIR/providerx.sql"
 ```
 
-5. Build:
+7. Build:
 
 ```bash
 docker build -t providerx-playbook:latest .
 ```
 
-6. Deploy:
+8. Deploy:
 
 ```bash
 set -a
@@ -58,7 +68,7 @@ docker stack deploy -c docker-stack.yml providerx --resolve-image never
 docker service update --force providerx_providerx_web
 ```
 
-7. Verificacao:
+9. Verificacao:
 
 ```bash
 docker service ls | grep providerx

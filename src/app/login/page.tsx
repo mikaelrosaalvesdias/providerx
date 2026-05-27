@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { ArrowRight, LockKeyhole, ShieldCheck, Sparkles } from "lucide-react";
 import { loginAction } from "@/app/login/actions";
+import { appVersionLabel } from "@/lib/app-version";
 
 const products = [
   ["Vigia Amigo", "#2ce9ff"],
@@ -23,7 +24,7 @@ export default function LoginPage() {
             <div className="brand-mark large">PX</div>
             <div>
               <div className="brand-wordmark text-2xl">ProviderX</div>
-              <div className="text-sm text-slate-400">Playbook Comercial</div>
+              <div className="text-sm text-slate-400">Playbook Comercial {appVersionLabel}</div>
             </div>
           </div>
 
@@ -84,6 +85,10 @@ export default function LoginPage() {
               <ArrowRight size={18} />
             </button>
           </form>
+          <div className="mt-6 flex items-center justify-between border-t border-slate-800 pt-4 text-xs text-slate-500">
+            <span>ProviderX Playbook Comercial</span>
+            <span>{appVersionLabel}</span>
+          </div>
         </section>
       </section>
     </main>

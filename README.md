@@ -504,6 +504,23 @@ Checklist operacional:
 - [CHECKLIST_PORTAS_DOMINIOS_PROXY.md](./CHECKLIST_PORTAS_DOMINIOS_PROXY.md)
 - [README_DEPLOY.md](./README_DEPLOY.md)
 - [ENV_VARS.md](./ENV_VARS.md)
+- [DESENVOLVIMENTO.md](./DESENVOLVIMENTO.md)
+- [CHANGELOG.md](./CHANGELOG.md)
+
+## Padrao de versionamento e deploy
+
+O app mostra a versao atual no login, na sidebar autenticada e na rota interna `/version`.
+
+Todo deploy em producao deve seguir esta ordem:
+
+1. Atualizar versao e changelog.
+2. Rodar validacoes.
+3. Commitar e fazer push no GitHub.
+4. Fazer build Docker.
+5. Atualizar a stack em producao.
+6. Validar o dominio.
+
+Deploy sem push previo no GitHub nao e permitido neste projeto.
 
 ## Roadmap
 

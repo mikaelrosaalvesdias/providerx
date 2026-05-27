@@ -14,6 +14,7 @@ import {
   Settings,
   SlidersHorizontal,
 } from "lucide-react";
+import { appVersionLabel } from "@/lib/app-version";
 import { logoutAction } from "@/lib/session-actions";
 
 type NavigationItem = {
@@ -120,6 +121,11 @@ export function Shell({
             </button>
           </form>
         </div>
+
+        <Link className="version-link mt-4 hidden lg:flex" href="/version">
+          <span>ProviderX Playbook</span>
+          <strong>{appVersionLabel}</strong>
+        </Link>
       </aside>
       <main className="min-w-0 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">{children}</main>
     </div>

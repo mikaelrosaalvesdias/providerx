@@ -165,6 +165,28 @@ textarea:focus {
   padding: 1rem;
 }
 
+.version-link {
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  background: rgba(2, 6, 23, 0.32);
+  padding: 0.7rem 0.85rem;
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.version-link strong {
+  color: #a5f3fc;
+  font-weight: 700;
+}
+
+.version-link:hover {
+  border-color: rgba(44, 233, 255, 0.26);
+  color: #e2e8f0;
+}
+
 .icon-button,
 .subtle-button,
 .admin-dialog-trigger,
